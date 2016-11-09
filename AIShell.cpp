@@ -3,6 +3,9 @@
 #include <vector>
 #include <cstdlib>
 #include <ctime>
+#include <tuple>
+
+std::vector<Move> toDelete;
 
 AIShell::AIShell(int numCols, int numRows, bool gravityOn, int** gameState, Move lastMove)
 {
@@ -48,7 +51,7 @@ AIShell::~AIShell()
 
 int** AIShell::clone(int** state)
 {		
-	int** cloned =NULL ;
+	int** cloned = NULL ;
 	cloned = new int*[numCols];
 	for(int i = 0; i < numCols; i++)
 		cloned[i] = new int[numRows];
@@ -64,321 +67,251 @@ int** AIShell::clone(int** state)
 
 /**********************************************************/
 
+void AIShell::evaluatePoints(int tempCounter, int& score)
+{
+	if(tempCounter == 2)
+		{
+			score = 5 * 10;
+		}
+		if(tempCounter == k - 3)
+		{
+			score = 5 * 20;
+		}
+
+		if(tempCounter == k - 2)
+		{
+			score = 5 * 50;
+		}
+
+		if(tempCounter == k - 1)
+		{
+			score = 5 * 80;
+		}
+	
+}
+
+std::tuple<int, int> AIShell::countVerticalWins(int** state, int col, int row)
+{	
+	int aiCount = 0; int otherCount = 0;
+	int aiScore = 0; int otherScore = 0;
+	if(state[col][row] == 1)
+	{
+		++aiCount;
+		while((row + 1 < numRows) && state[col][row + 1] == 1)
+		{ 
+			++row; ++aiCount;	
+		}
+		if(aiCount == k)
+			{
+				return std::make_tuple(9999, 0);
+			}
+		evaluatePoints(aiCount, aiScore);
+	}
+
+	if(state[col][row] == -1)
+	{
+		++otherCount;
+		while((row + 1 < numRows) && state[col][row + 1] == -1)
+		{
+			++row; ++otherCount;
+		}
+		if(otherCount == k)
+			{
+				return std::make_tuple(0, -9999);
+			}
+		evaluatePoints(otherCount, otherScore);
+	}
+
+	// if(aiCount == 1)
+	// 	aiScore = aiCount;
+	// if(otherScore ==1)
+	// 	otherScore = otherCount;
+	return std::make_tuple(aiScore, -otherScore);
+
+}
+
+
+
+std::tuple<int, int> AIShell::countHorizontalWins(int** state, int col, int row)
+{
+	int aiCount = 0; int otherCount = 0;
+	int aiScore = 0; int otherScore = 0;
+	int tempCol = col; 
+	if(state[col][row] == 1)
+	{
+		++aiCount;
+		while(tempCol - 1 >= 0 && state[tempCol - 1][row] == 1)
+		{
+			++aiCount; --tempCol;
+		}
+		tempCol = col; 
+		while(tempCol + 1 < numCols && state[tempCol + 1][row] == 1)
+		{
+			++aiCount; ++tempCol;
+		}
+		if(aiCount == k)
+		{
+			return std::make_tuple(9999, 0);
+		}
+		evaluatePoints(aiCount, aiScore);
+
+	}
+	else if(state[col][row] == -1)
+	{
+		++otherCount;
+		while(tempCol - 1 >= 0 && state[tempCol - 1][row] == -1)
+		{
+			++otherCount; --tempCol;
+		}
+		tempCol = col; 
+		while(tempCol + 1 < numCols && state[tempCol + 1][row] == -1)
+		{
+			++otherCount; ++tempCol;
+		}
+		
+		if(otherCount == k)
+		{
+			return std::make_tuple(0, -9999);
+		}
+		evaluatePoints(otherCount, otherScore);
+	}
+
+		return std::make_tuple(aiScore, -otherScore);
+
+}
+
+
+void AIShell::diagonalLRLoop(int& tempCol, int& tempRow, int col, int row, int& count, int** state)
+{
+		while((tempRow + 1 < numRows && tempCol + 1 < numCols) && state[tempCol + 1][tempRow + 1] == 1)
+		{
+			++count; ++tempRow; ++tempCol;
+		}
+		tempCol = col; tempRow = row;
+
+		while((tempRow - 1 > numRows && tempCol - 1 > numCols) && state[tempCol - 1][tempRow - 1] == 1)
+		{
+			++count; ++tempRow; ++tempCol;
+		}
+}
+
+std::tuple<int, int> AIShell::countDiagonalWinsLR(int** state, int col, int row)
+{
+	int aiCount = 0; int otherCount = 0;
+	int aiScore = 0; int otherScore = 0;
+	int tempCol = col; int tempRow = row;
+
+	if(state[col][row] == 1)
+	{
+		++aiCount;
+		
+		diagonalLRLoop(tempCol, tempRow, col, row, aiCount, state);
+
+		if(aiCount == k)
+		{
+			return std::make_tuple(9999, 0);
+		}
+		evaluatePoints(aiCount, aiScore);
+	}
+	else if(state[col][row] == -1)
+	{
+		++otherCount;
+		diagonalLRLoop(tempCol, tempRow, col, row, otherCount, state);
+
+		if(otherCount == k)
+		{
+			return std::make_tuple(0, -9999);
+		}
+		evaluatePoints(otherCount, otherScore);
+
+	}
+	return std::make_tuple(aiScore, -otherScore);
+}
+
+
+void AIShell::diagonalRLLoop(int& tempCol, int& tempRow, int col, int row, int& count, int** state)
+{
+		while((tempRow + 1 < numRows && tempCol - 1 > numCols) && state[tempCol - 1][tempRow + 1] == 1)
+		{
+			++count; ++tempRow; ++tempCol;
+		}
+		tempCol = col; tempRow = row;
+
+		while((tempRow - 1 > numRows && tempCol + 1 > numCols) && state[tempCol + 1][tempRow - 1] == 1)
+		{
+			++count; ++tempRow; ++tempCol;
+		}
+}
+
+std::tuple<int, int> AIShell::countDiagonalWinsRL(int** state, int col, int row)
+{
+	int aiCount = 0; int otherCount = 0;
+	int aiScore = 0; int otherScore = 0;
+	int tempCol = col; int tempRow = row;
+
+	if(state[col][row] == 1)
+	{
+		++aiCount;
+		
+		diagonalRLLoop(tempCol, tempRow, col, row, aiCount, state);
+
+		if(aiCount == k)
+		{
+			return std::make_tuple(9999, 0);
+		}
+		evaluatePoints(aiCount, aiScore);
+	}
+	else if(state[col][row] == -1)
+	{
+		++otherCount;
+		diagonalRLLoop(tempCol, tempRow, col, row, otherCount, state);
+
+		if(otherCount == k)
+		{
+			return std::make_tuple(0, -9999);
+		}
+		evaluatePoints(otherCount, otherScore);
+
+	}
+	return std::make_tuple(aiScore, -otherScore);
+}
+
 int AIShell::countTotalWins(int** state) 
 {
-
-
-// -------vvvvvvvv--------Check Vertical Variables-------vvvv-------//
-
-	int aiWinner = 0; 		//used to count for potential connect k (includes empty)
-	int otherWinner = 0; 	// used to count for potential connect k (includes empty)
-
-	int totalAi = 0; 		//used to count for total pieces
-	int totalOther = 0; 	// used to count for total pieces
-
-	int totalPotentialAIWins = 0;
-	int totalPotentialOtherWins = 0;
-
-	int singleAi = 0;
-	int singleOther = 0;
-// -------vvvvvvvv--------Check Horizeontal Variables-------vvvv-------//
-
-	int aiWinnerHorizontal = 0;
-	int otherWinnerHorizontal = 0;
-
-	int totalAiHorizontal = 0;
-	int totalOtherHorizontal = 0;
-
-	int totalPotAiHorizontal = 0;
-	int totalPotOtherHorizontal= 0;
-
-
-
-// -------vvvvvvvv--------Check Diagonal Left Right Variables-------vvvv-------//
-
-
-
-
-// -------vvvvvvvv--------Check Diagonal Right Left Variables-------vvvv-------//
-
-
-
-// -------vvvvvvvv--------Giant For Loop Nested If Statements-------vvvv-------//
-
-	//count number of wins in columns
+	std::cout<<"CALLING COUNT TOTAL WINS!!!!!!!!!!!"<<std::endl;
+	int aiScore = 0; int otherScore = 0;
+	int aiHScore = 0; int otherHScore = 0;
 	for(int col = 0; col < numCols; col++)
-	{
-		aiWinner = 0; otherWinner = 0;
 		for(int row = 0; row < numRows; row++)
 		{
-			int tempRow = row;
-			int tempCol = col;
-			if(state[col][row] == 1)
-			{
-				++aiWinner;
-					while((++tempRow < numRows) && state[col][tempRow] == 1)
-					{
-						otherWinner = 0;
-						aiWinner++;
-						if(aiWinner == k - 3 || aiWinner == 2)
-						{
-							totalPotentialAIWins = 10 * 50;
-							if(totalAi < totalPotentialAIWins)
-								totalAi = totalPotentialAIWins;
-						}
-						if(aiWinner == k - 2)
-						{
-							totalPotentialAIWins = 10 * 60;
-							if(totalAi < totalPotentialAIWins)
-								totalAi = totalPotentialAIWins;
-						}
-						if(aiWinner == k - 1)
-						{
-							totalPotentialAIWins = 10 * 80;
-							if(totalAi < totalPotentialAIWins)
-								totalAi = totalPotentialAIWins;
-						}
-						if (aiWinner >= k)
-						{
-							std::cout<<"statement  this one right here"<<std::endl;
-							return 9999;
-							
-						}
-					}
-				if(tempRow < row && state[col][tempRow] == -1)
-					totalAi -= 50;
-				totalPotentialAIWins = 0;
-				aiWinner = 0;
-			}
-			
-			else if(state[col][row] == -1)
-			{	
-				++otherWinner;
-				aiWinner = 0;
-				tempRow = row;
-				
-				while((++tempRow < numRows) && state[col][tempRow] == -1)
-				{
-					aiWinner = 0;
-					otherWinner++;
 
-					if(otherWinner == k - 3 || otherWinner == 2)
-					{
-						totalPotentialOtherWins = 10 * 50;
-						if(totalOther < totalPotentialOtherWins)
-							totalOther = totalPotentialOtherWins;
-					}
+			//Vertical Win count
+			std::tuple<int, int> vertScore = countVerticalWins(state, col, row);
+			aiScore += std::get<0>(vertScore);
+			otherScore += std::get<1>(vertScore);
 
-					if(otherWinner == k - 2)
-					{
-						totalPotentialOtherWins = 10 * 60;
-						if(totalOther < totalPotentialOtherWins)
-							totalOther = totalPotentialOtherWins;
-					}
-					if(otherWinner == k - 1)
-					{
-						totalPotentialOtherWins = 10 * 80;
-						if(totalOther < totalPotentialOtherWins)
-							totalOther = totalPotentialOtherWins;
-					}
-					if (otherWinner >= k)
-					{
-						return -9999;
-					}
-				}
-				
-				if(tempRow < row && state[col][tempRow] == 1)
-					totalOther -= 50;
-				totalPotentialOtherWins = 0;
-			}
-			else if(state[col][row] == 0)
-				{
-					singleAi+= 10;
-					singleOther+=10;
-				}
-		}
+			//Horizontal wins count
+			std::tuple<int, int> horizScore = countHorizontalWins(state, col, row);
+			aiHScore += std::get<0>(horizScore);
+			otherHScore += std::get<1>(horizScore);
 
-	}
+			//Diagonal wins left to right
+			std::tuple<int, int> diagLRScore = countDiagonalWinsLR(state, col, row);
+			aiHScore += std::get<0>(diagLRScore);
+			otherHScore += std::get<1>(diagLRScore);
 
-	//HORIZONTAL WINS
-	for(int row = 0; row < numRows; row++)
-	{
-		aiWinnerHorizontal = 0; otherWinnerHorizontal = 0;
-		for(int col = 0; col < numCols; col++)
-		{
-			int tempCol = col;
-			int tempRow = row;
-			if(state[col][row] == 1)
-			{
-				aiWinnerHorizontal++;
-				// MAY NOT NEED THIS
-				while((--tempCol >= 0) && state[tempCol][row] == 1)
-				{
-					otherWinnerHorizontal = 0;
-					aiWinnerHorizontal++;
+			//Diagonal wins right to left
+			std::tuple<int, int> diagRLScore = countDiagonalWinsRL(state, col, row);
+			aiHScore += std::get<0>(diagRLScore);
+			otherHScore += std::get<1>(diagRLScore);
 
-					if(aiWinnerHorizontal == k - 3 || aiWinnerHorizontal == 2)
-					{
-						totalPotAiHorizontal = 10 * 50;
-						if(totalAiHorizontal <  totalPotAiHorizontal)
-							totalAiHorizontal = totalPotAiHorizontal;
-					}
-					if(aiWinnerHorizontal == k - 2)
-					{
-						totalPotAiHorizontal = 10 * 60;
-						if(totalAiHorizontal <  totalPotAiHorizontal)
-							totalAiHorizontal = totalPotAiHorizontal;
-					}
-					if(aiWinnerHorizontal == k - 1)
-					{
-						totalPotAiHorizontal = 10 * 80;
-						if(totalAiHorizontal <  totalPotAiHorizontal)
-							totalAiHorizontal = totalPotAiHorizontal;
-					}
-					if (aiWinnerHorizontal >= k)
-					{
-						std::cout<<"statement here this one"<<std::endl;
-						return 9999;
-					}
-				}
-
-				if(tempCol >= 0 && state[tempCol][row] == -1)
-					totalAiHorizontal -= 50 ;
-				++singleAi;
-				tempCol = col;
-
-				while((++tempCol < numCols) && state[tempCol][row] == 1){
-					otherWinnerHorizontal = 0;
-					aiWinnerHorizontal++;
-
-					if(aiWinnerHorizontal == k - 3 || aiWinnerHorizontal == 2)
-					{
-						totalPotAiHorizontal = 10 * 50;
-						if(totalAiHorizontal <  totalPotAiHorizontal)
-						   totalAiHorizontal = totalPotAiHorizontal;
-					}
-
-					if(aiWinnerHorizontal == k - 2)
-					{
-						totalPotAiHorizontal = 10 * 60;
-						if(totalAiHorizontal <  totalPotAiHorizontal)
-						   totalAiHorizontal = totalPotAiHorizontal;
-					}
-
-					if(aiWinnerHorizontal == k - 1)
-					{
-						totalPotAiHorizontal = 10 * 80;
-						if(totalAiHorizontal <  totalPotAiHorizontal)
-						   totalAiHorizontal = totalPotAiHorizontal;
-					}
-					if (aiWinnerHorizontal >= k)
-					{
-						std::cout<<"statement here one two"<<std::endl;
-						std::cout<<aiWinnerHorizontal<<std::endl;
-
-						return 9999;
-					}
-				}
-
-				if(tempCol < numCols && state[tempCol][row] == -1)
-					totalAiHorizontal -= 100;
-				++singleOther;
-				aiWinnerHorizontal = 0;
-
-
-			}
-
-			else if(state[col][row] == -1)
-			{	
-				tempCol = col;
-				aiWinnerHorizontal = 0;
-				++otherWinnerHorizontal;
-
-				while((--tempCol >= 0) && state[tempCol][row] == -1)
-				{
-					aiWinnerHorizontal = 0;
-					++otherWinnerHorizontal;
-						
-					if(otherWinnerHorizontal == k - 3 || otherWinnerHorizontal == 2)
-					{
-						totalPotOtherHorizontal = 10 * 40;
-						if(totalOtherHorizontal < totalPotOtherHorizontal)
-							totalOtherHorizontal = totalPotOtherHorizontal;
-					}
-
-					if(otherWinnerHorizontal == k - 2)
-					{
-						totalPotOtherHorizontal = 10 * 60;
-						if(totalOtherHorizontal < totalPotOtherHorizontal)
-							totalOtherHorizontal = totalPotOtherHorizontal;
-					}
-					if(otherWinnerHorizontal == k - 1)
-					{
-						totalPotOtherHorizontal = 10 * 80;
-						if(totalOtherHorizontal < totalPotOtherHorizontal)
-							totalOtherHorizontal = totalPotOtherHorizontal;
-					}
-					if (otherWinnerHorizontal >= k)
-					{
-						if(totalOtherHorizontal < totalPotOtherHorizontal)
-						{
-							std::cout<<"statement here ------"<<std::endl;
-							return -9999;
-						}
-					}
-
-				}
-				if(tempCol >= 0 && state[tempCol][row] == 1)
-					totalAiHorizontal -= 100;
-				aiWinnerHorizontal = 0;
-
-				tempCol = col;
-				while((++tempCol < numCols) && state[tempCol][row] == -1){
-
-					aiWinnerHorizontal = 0;
-					++otherWinnerHorizontal;
-						
-					if(otherWinnerHorizontal == k - 3 || otherWinnerHorizontal == 2)
-					{
-						totalPotOtherHorizontal = 10 * 40;
-						if(totalOtherHorizontal < totalPotOtherHorizontal)
-							totalOtherHorizontal = totalPotOtherHorizontal;
-					}
-
-					if(otherWinnerHorizontal == k - 2)
-					{
-						totalPotOtherHorizontal = 5 * 60;
-						if(totalOtherHorizontal < totalPotOtherHorizontal)
-							totalOtherHorizontal = totalPotOtherHorizontal;
-					}
-					if(otherWinnerHorizontal == k - 1)
-					{
-						totalPotOtherHorizontal = 10 * 80;
-						if(totalOtherHorizontal < totalPotOtherHorizontal)
-							totalOtherHorizontal = totalPotOtherHorizontal;
-					}
-					if (otherWinnerHorizontal >= k)
-					{
-						if(totalOtherHorizontal < totalPotOtherHorizontal)
-						{
-							std::cout<<"statement here"<<std::endl;
-							return -9999;
-						}
-					}
-				}
-				if(tempCol < numCols && state[tempCol][row] == 1)
-					totalAiHorizontal -= 100;
-			}
-			else if(state[col][row] == 0)
-				{
-					singleAi+= 10;
-					singleOther+=10;
-				}
-		}
-
-	}
-
-	return  totalAi + totalAiHorizontal + singleAi - singleOther - totalOther - totalOtherHorizontal ;
+			//countDiagonalWinsLR(state, col row);
+			if(aiScore >= 9999)
+				return 9999;
+			else if(otherScore == -9999)
+				return -9999;
+		}		
+		return aiScore + otherScore + aiHScore + otherHScore;
 }
 
 std::vector<Move> AIShell::availableMoves(int** state){
@@ -410,7 +343,7 @@ Move AIShell::makeMove(){
 
  	Move m;
  	std::cout<<"MAKING MOVE" << std::endl;
- 	m = getBestMove(gameState, 3, 0, -9999, 9999);
+ 	m = getBestMove(gameState, 2, 0, -9999, 9999);
 
  	return m;
 }
@@ -419,20 +352,20 @@ Move AIShell::getBestMove(int** state, int depth, int turn, int alpha, int beta)
 	std::vector<Move> moveVector = availableMoves(state);
 	int bestVal;
 	Move bestMove;
-	if(moveVector.size() == numRows * numCols - 1 || moveVector.size() == numRows * numCols - 2)
+	if(moveVector.size() == numRows * numCols || moveVector.size() == numRows * numCols - 1)
 	{
 		if(state[numCols/2][numRows/2] == NO_PIECE)
 			return Move(numCols/2, numRows/2);
 		else
 			return Move(numCols/2 - 1, numRows/2 - 1);
 	}
-	if(depth == 0 || moveVector.size() == 0)
+	else if(depth == 0 || moveVector.size() == 0)
 	{
 		Move m(countTotalWins(state));
 		std::cout<< "--------------------SCORE GIVEN OF: "<<m.score<<" ---------------------------"<<std::endl;
 		return m;
 	}
-	if(turn % 2 == 0 )
+	else if(turn % 2 == 0 )
 	{
 		std::cout<<"turn: "<< turn << std::endl;
 		int count = 0;
