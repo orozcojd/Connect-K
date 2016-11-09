@@ -16,12 +16,10 @@ AIShell::AIShell(int numCols, int numRows, bool gravityOn, int** gameState, Move
 	this->gameState=gameState;
 	this->lastMove=lastMove;
 	this->Winner = -2;
-	// this->AImove = 0;
 }
 
 AIShell::AIShell(const AIShell &toCopy)
 {
-	std::cout<<"******************Copy constructor called*****************"<<std::endl;
 	this->numRows = toCopy.numRows;
 	this->numCols = toCopy.numCols;
 	this->gravityOn = toCopy.gravityOn;
@@ -36,8 +34,6 @@ AIShell::AIShell(const AIShell &toCopy)
 			gameState[col][row] = toCopy.gameState[col][row];
 		}
 }
-
-
 
 AIShell::~AIShell()
 {
@@ -64,9 +60,6 @@ int** AIShell::clone(int** state)
 	return cloned;
 }
 
-
-/**********************************************************/
-
 void AIShell::evaluatePoints(int tempCounter, int& score)
 {
 	if(tempCounter == 2)
@@ -89,7 +82,6 @@ void AIShell::evaluatePoints(int tempCounter, int& score)
 		}
 	
 }
-
 std::tuple<int, int> AIShell::countVerticalWins(int** state, int col, int row)
 {	
 	int aiCount = 0; int otherCount = 0;
@@ -121,11 +113,6 @@ std::tuple<int, int> AIShell::countVerticalWins(int** state, int col, int row)
 			}
 		evaluatePoints(otherCount, otherScore);
 	}
-
-	// if(aiCount == 1)
-	// 	aiScore = aiCount;
-	// if(otherScore ==1)
-	// 	otherScore = otherCount;
 	return std::make_tuple(aiScore, -otherScore);
 
 }
@@ -330,17 +317,6 @@ std::vector<Move> AIShell::availableMoves(int** state){
 }	
 
 Move AIShell::makeMove(){
-	//int rand(void);
-	//this part should be filled in by the student to implement the AI
-	//Example of a move could be: Move move(1, 2); //this will make a move at col 1, row 2
-	
-	// std::tuple<int, int> intialMove = evaluateGame(gameState);
- // 	 if(std::get<0>(intialMove) == 0){
- // 	 	std::cout<<"THIS IS TRUE ----------------"<<std::endl;
- // 	 	return createRandomMove(gameState);
- // 	 }
-
-
  	Move m;
  	std::cout<<"MAKING MOVE" << std::endl;
  	m = getBestMove(gameState, 2, 0, -9999, 9999);
@@ -405,10 +381,8 @@ Move AIShell::getBestMove(int** state, int depth, int turn, int alpha, int beta)
 		}
 		return bestMove;
 	}
-
 	else
 	{
-		// std::cout<<"turn: "<< turn << std::endl;
 		bestVal = beta;
 		Move m;
 		int count = 0;
@@ -439,7 +413,6 @@ Move AIShell::getBestMove(int** state, int depth, int turn, int alpha, int beta)
 				delete [] nextGameState[i];
 					}
 				delete [] nextGameState;
-
 		}
 		return bestMove;
 	}
