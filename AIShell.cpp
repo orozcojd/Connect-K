@@ -257,28 +257,33 @@ int AIShell::countTotalWins(int** state, int turn)
 	std::cout<<"CALLING COUNT TOTAL WINS!!!!!!!!!!!"<<std::endl;
 	int aiScore = 0; int otherScore = 0;
 	int aiHScore = 0; int otherHScore = 0;
+	int diagLR = 0; int diagRL = 0;
 	for(int col = 0; col < numCols; col++)
 		for(int row = 0; row < numRows; row++)
 		{
 
 			//Vertical Win count
 			int vertScore = countVerticalWins(state, col, row);
-			aiScore += vertScore;
+			if(vertScore > aiScore)
+				aiScore = vertScore;
 			
 
 			//Horizontal wins count
 			int horizScore = countHorizontalWins(state, col, row);
-			aiHScore += horizScore;
+			if(horizScore > aiHScore)
+				aiHScore = horizScore;
 			
 
 			//Diagonal wins left to right
 			int diagLRScore = countDiagonalWinsLR(state, col, row);
-			aiHScore += diagLRScore;
+			if(diagLRScore > diagLR)
+				diagLR = diagLRScore;
 			
 
 			//Diagonal wins right to left
 			int diagRLScore = countDiagonalWinsRL(state, col, row);
-			aiHScore += diagRLScore;
+			if(diagRLScore > diagRL)
+				diagRL = diagRLScore;
 			
 
 			//countDiagonalWinsLR(state, col row);
@@ -288,7 +293,7 @@ int AIShell::countTotalWins(int** state, int turn)
 				return -999999999;
 		}	 	
 		// if(turn % 2 == 0)
-			return aiScore + aiHScore;
+			return aiScore + aiHScore +diagLR + diagRL;
 		// return otherScore + otherHScore;
 }
 
@@ -310,7 +315,7 @@ std::vector<Move> AIShell::availableMoves(int** state){
 Move AIShell::makeMove(){
  	Move m;
  	std::cout<<"MAKING MOVE" << std::endl;
- 	m = getBestMove(gameState, 1, 0, -999999999, 999999999);
+ 	m = getBestMove(gameState, 2, 0, -999999999, 999999999);
 
  	return m;
 }
