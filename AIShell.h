@@ -51,8 +51,8 @@ public:
 	int countDiagonalWinsLR(int** state, int col, int row);
 	int countDiagonalWinsRL(int** state, int col, int row);
 	void evaluatePoints(int tempCounter, int& score);
-	void diagonalLRLoop(int& tempCol, int& tempRow, int col, int row, int& count, int** state);
-	void diagonalRLLoop(int& tempCol, int& tempRow, int col, int row, int& count, int** state);
+	void diagonalLRLoop(int& tempCol, int& tempRow, int col, int row, int& count, int** state, int turn);
+	void diagonalRLLoop(int& tempCol, int& tempRow, int col, int row, int& count, int** state, int turn);
 
 
 };
