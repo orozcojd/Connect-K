@@ -44,12 +44,12 @@ public:
 	float distance (int x1,int x2, int y1, int y2);
 	Move checkk(int **gameState, int player);
 	int** clone(int** gamestate);
-	int countTotalWins(int** gameState);
+	int countTotalWins(int** gameState, int turn);
 	int sizeOfAvailableMoves(int** gameState);
-	std::tuple<int, int> countVerticalWins(int** state, int col, int row);
-	std::tuple<int, int> countHorizontalWins(int** state, int col, int row);
-	std::tuple<int, int> countDiagonalWinsLR(int** state, int col, int row);
-	std::tuple<int, int> countDiagonalWinsRL(int** state, int col, int row);
+	int countVerticalWins(int** state, int col, int row);
+	int countHorizontalWins(int** state, int col, int row);
+	int countDiagonalWinsLR(int** state, int col, int row);
+	int countDiagonalWinsRL(int** state, int col, int row);
 	void evaluatePoints(int tempCounter, int& score);
 	void diagonalLRLoop(int& tempCol, int& tempRow, int col, int row, int& count, int** state);
 	void diagonalRLLoop(int& tempCol, int& tempRow, int col, int row, int& count, int** state);

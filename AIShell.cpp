@@ -64,125 +64,123 @@ void AIShell::evaluatePoints(int tempCounter, int& score)
 {
 	if(tempCounter == 2)
 		{
-			score = 5 * 10;
+			score = 1;
 		}
 		if(tempCounter == k - 3)
 		{
-			score = 5 * 20;
+			score = 4;
 		}
 
 		if(tempCounter == k - 2)
 		{
-			score = 5 * 50;
+			score = 8;
 		}
 
 		if(tempCounter == k - 1)
 		{
-			score = 5 * 80;
+			score = 12;
 		}
-	
 }
-std::tuple<int, int> AIShell::countVerticalWins(int** state, int col, int row)
+int AIShell::countVerticalWins(int** state, int col, int row)
 {	
 	int aiCount = 0; int otherCount = 0;
 	int aiScore = 0; int otherScore = 0;
 	if(state[col][row] == 1)
 	{
-		++aiCount;
+		aiCount++;
 		while((row + 1 < numRows) && state[col][row + 1] == 1)
 		{ 
 			++row; ++aiCount;	
 		}
 		if(aiCount == k)
 			{
-				return std::make_tuple(9999999999, 0);
+				return 999999999;
 			}
 		evaluatePoints(aiCount, aiScore);
 	}
 
-	if(state[col][row] == -1)
-	{
-		++otherCount;
-		while((row + 1 < numRows) && state[col][row + 1] == -1)
-		{
-			++row; ++otherCount;
-		}
-		if(otherCount == k)
-			{
-				return std::make_tuple(0, -9999999999);
-			}
-		evaluatePoints(otherCount, otherScore);
-	}
-	return std::make_tuple(aiScore, -otherScore);
+	return aiScore;
 
 }
 
-
-
-std::tuple<int, int> AIShell::countHorizontalWins(int** state, int col, int row)
+int AIShell::countHorizontalWins(int** state, int col, int row)
 {
 	int aiCount = 0; int otherCount = 0;
 	int aiScore = 0; int otherScore = 0;
 	int tempCol = col; 
+	bool leftBlocked = false; bool rightBlocked = false;
 	if(state[col][row] == 1)
 	{
-		++aiCount;
+		aiCount++;
 		while(tempCol - 1 >= 0 && state[tempCol - 1][row] == 1)
 		{
 			++aiCount; --tempCol;
 		}
+		//Checks for blocked pieces
+		if(tempCol < 0)
+			leftBlocked = true;
+		else if(state[tempCol][row] == -1)
+			leftBlocked = true;
+
 		tempCol = col; 
 		while(tempCol + 1 < numCols && state[tempCol + 1][row] == 1)
 		{
 			++aiCount; ++tempCol;
 		}
+
+		if(tempCol = numCols)
+			rightBlocked = true;
+		else if(state[tempCol][row] == -1)
+			rightBlocked = true;
+
 		if(aiCount == k)
 		{
-			return std::make_tuple(9999999999, 0);
+			return 999999999;
 		}
 		evaluatePoints(aiCount, aiScore);
-
 	}
-	else if(state[col][row] == -1)
-	{
-		++otherCount;
-		while(tempCol - 1 >= 0 && state[tempCol - 1][row] == -1)
-		{
-			++otherCount; --tempCol;
-		}
-		tempCol = col; 
-		while(tempCol + 1 < numCols && state[tempCol + 1][row] == -1)
-		{
-			++otherCount; ++tempCol;
-		}
-		
-		if(otherCount == k)
-		{
-			return std::make_tuple(0, -9999999999);
-		}
-		evaluatePoints(otherCount, otherScore);
-	}
+		if(leftBlocked && rightBlocked)
+			aiScore = 0;
 
-		return std::make_tuple(aiScore, -otherScore);
+		return aiScore;
 
 }
 
 
 void AIShell::diagonalLRLoop(int& tempCol, int& tempRow, int col, int row, int& count, int** state)
 {
-		while((tempRow + 1 < numRows && tempCol + 1 < numCols) && state[tempCol + 1][tempRow + 1] == 1)
-		{
-			++count; ++tempRow; ++tempCol;
-		}
-		tempCol = col; tempRow = row;
+	bool topDiagBocked = false; bool bottomDiagBlocked = false;
 
-		while((tempRow - 1 > numRows && tempCol - 1 > numCols) && state[tempCol - 1][tempRow - 1] == 1)
-		{
-			++count; ++tempRow; ++tempCol;
-		}
+	while((tempRow + 1 < numRows && tempCol + 1 < numCols) && state[tempCol + 1][tempRow + 1] == 1)
+	{
+		++count; ++tempRow; ++tempCol;
+	}
+	//Checks to see if diagonal top right is blocked
+	if(tempRow < numRows && tempCol < numCols)
+		if(state[tempCol][tempRow] == -1)
+			topDiagBocked = true;
+	else if(tempRow == numRows || tempCol == numCols)
+		topDiagBocked = true;
+
+	//Reset column and row to iriginal position before checking the bottom left diagonal
+	tempCol = col; tempRow = row;
+	while((tempRow - 1 > numRows && tempCol - 1 > numCols) && state[tempCol - 1][tempRow - 1] == 1)
+	{
+		++count; --tempRow; --tempCol;
+	}
+	//Checks to see if diagonal bottom left is blocked
+	if(tempCol >= 0 && tempRow >= 0)
+		if(tempRow < numRows || tempCol < numCols)
+			bottomDiagBlocked = true;
+	else if(tempRow < numRows || tempCol < numCols)
+		bottomDiagBlocked = true;
+
+	//If both diagonals are blocking, don't count this score
+	if(topDiagBocked && bottomDiagBlocked)
+		count = 0;
 }
 
-std::tuple<int, int> AIShell::countDiagonalWinsLR(int** state, int col, int row)
+int AIShell::countDiagonalWinsLR(int** state, int col, int row)
 {
 	int aiCount = 0; int otherCount = 0;
 	int aiScore = 0; int otherScore = 0;
@@ -190,50 +188,50 @@ std::tuple<int, int> AIShell::countDiagonalWinsLR(int** state, int col, int row)
 
 	if(state[col][row] == 1)
 	{
-		++aiCount;
-		
+		aiCount++;
 		diagonalLRLoop(tempCol, tempRow, col, row, aiCount, state);
 
 		if(aiCount == k)
 		{
-			return std::make_tuple(9999999999, 0);
+			return 999999999;
 		}
 		evaluatePoints(aiCount, aiScore);
 	}
-	else if(state[col][row] == -1)
-	{
-		++otherCount;
-		diagonalLRLoop(tempCol, tempRow, col, row, otherCount, state);
 
-		if(otherCount == k)
-		{
-			return std::make_tuple(0, -9999999999);
-		}
-		evaluatePoints(otherCount, otherScore);
-
-	}
-	return std::make_tuple(aiScore, -otherScore);
+	return aiScore;
 }
 
 
 void AIShell::diagonalRLLoop(int& tempCol, int& tempRow, int col, int row, int& count, int** state)
 {
-		while((tempRow + 1 < numRows && tempCol - 1 > numCols) && state[tempCol - 1][tempRow + 1] == 1)
-		{
-			++count; ++tempRow; ++tempCol;
-		}
+	bool leftBlocked = false; bool rightBlocked = false;	
+	while((tempCol - 1 > numCols && tempRow + 1 < numRows) && state[tempCol - 1][tempRow + 1] == 1)
+	{
+		++count; --tempCol; ++tempRow;
+	}
+
+	if(tempRow < numRows && tempCol >= 0)
+		if(state[tempCol][tempRow] == - 1)
+			leftBlocked = true;
+	else if(tempRow == numRows || tempCol < 0)
+		leftBlocked = true;
+
+	tempCol = col; tempRow = row;
+	while((tempCol + 1 > numCols && tempRow - 1 > numRows) && state[tempCol + 1][tempRow - 1] == 1)
+	{
+		++count; ++tempCol; --tempRow;
+	}
+
+	if(tempRow >= 0 && tempCol < numCols)
 		if(state[tempCol][tempRow] == -1)
-			count = 0;
-		//tempCol = col; tempRow = row;
-
-		while((tempRow - 1 > numRows && tempCol + 1 > numCols) && state[tempCol + 1][tempRow - 1] == 1)
-		{
-			++count; ++tempRow; ++tempCol;
-		}
-
+			rightBlocked = true;
+	else if(tempRow < 0 || tempCol == numCols)
+		rightBlocked = true;
+	if(leftBlocked && rightBlocked)
+		count = 0;
 }
 
-std::tuple<int, int> AIShell::countDiagonalWinsRL(int** state, int col, int row)
+int AIShell::countDiagonalWinsRL(int** state, int col, int row)
 {
 	int aiCount = 0; int otherCount = 0;
 	int aiScore = 0; int otherScore = 0;
@@ -241,33 +239,20 @@ std::tuple<int, int> AIShell::countDiagonalWinsRL(int** state, int col, int row)
 
 	if(state[col][row] == 1)
 	{
-		++aiCount;
+		aiCount++;
 		
 		diagonalRLLoop(tempCol, tempRow, col, row, aiCount, state);
-		if(aiCount == 0)
-			aiScore = 1;
 		if(aiCount == k)
 		{
-			return std::make_tuple(9999999999, 0);
+			return 999999999;
 		}
 		evaluatePoints(aiCount, aiScore);
 	}
-	else if(state[col][row] == -1)
-	{
-		++otherCount;
-		diagonalRLLoop(tempCol, tempRow, col, row, otherCount, state);
 
-		if(otherCount == k)
-		{
-			return std::make_tuple(0, -9999999999);
-		}
-		evaluatePoints(otherCount, otherScore);
-
-	}
-	return std::make_tuple(aiScore, -otherScore);
+	return aiScore;
 }
 
-int AIShell::countTotalWins(int** state) 
+int AIShell::countTotalWins(int** state, int turn) 
 {
 	std::cout<<"CALLING COUNT TOTAL WINS!!!!!!!!!!!"<<std::endl;
 	int aiScore = 0; int otherScore = 0;
@@ -277,32 +262,34 @@ int AIShell::countTotalWins(int** state)
 		{
 
 			//Vertical Win count
-			std::tuple<int, int> vertScore = countVerticalWins(state, col, row);
-			aiScore += std::get<0>(vertScore);
-			otherScore += std::get<1>(vertScore);
+			int vertScore = countVerticalWins(state, col, row);
+			aiScore += vertScore;
+			
 
 			//Horizontal wins count
-			std::tuple<int, int> horizScore = countHorizontalWins(state, col, row);
-			aiHScore += std::get<0>(horizScore);
-			otherHScore += std::get<1>(horizScore);
+			int horizScore = countHorizontalWins(state, col, row);
+			aiHScore += horizScore;
+			
 
 			//Diagonal wins left to right
-			std::tuple<int, int> diagLRScore = countDiagonalWinsLR(state, col, row);
-			aiHScore += std::get<0>(diagLRScore);
-			otherHScore += std::get<1>(diagLRScore);
+			int diagLRScore = countDiagonalWinsLR(state, col, row);
+			aiHScore += diagLRScore;
+			
 
 			//Diagonal wins right to left
-			std::tuple<int, int> diagRLScore = countDiagonalWinsRL(state, col, row);
-			aiHScore += std::get<0>(diagRLScore);
-			otherHScore += std::get<1>(diagRLScore);
+			int diagRLScore = countDiagonalWinsRL(state, col, row);
+			aiHScore += diagRLScore;
+			
 
 			//countDiagonalWinsLR(state, col row);
-			if(aiScore >= 9999999999)
-				return 9999999999;
-			else if(otherScore == -9999999999)
-				return -9999999999;
-		}		
-		return aiScore + otherScore + aiHScore + otherHScore;
+			if(aiScore >= 999999999)
+				return 999999999;
+			else if(otherScore == -999999999)
+				return -999999999;
+		}	 	
+		// if(turn % 2 == 0)
+			return aiScore + aiHScore;
+		// return otherScore + otherHScore;
 }
 
 std::vector<Move> AIShell::availableMoves(int** state){
@@ -323,7 +310,7 @@ std::vector<Move> AIShell::availableMoves(int** state){
 Move AIShell::makeMove(){
  	Move m;
  	std::cout<<"MAKING MOVE" << std::endl;
- 	m = getBestMove(gameState, 1, 0, -9999999999, 9999999999);
+ 	m = getBestMove(gameState, 1, 0, -999999999, 999999999);
 
  	return m;
 }
@@ -342,7 +329,7 @@ Move AIShell::getBestMove(int** state, int depth, int turn, int alpha, int beta)
 	}
 	else if(depth == 0 || moveVector.size() == 0)
 	{
-		Move m(countTotalWins(state));
+		Move m(countTotalWins(state, turn));
 		std::cout<< "--------------------SCORE GIVEN OF: "<<m.score<<" ---------------------------"<<std::endl;
 		return m;
 	}
