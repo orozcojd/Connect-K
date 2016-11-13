@@ -382,7 +382,7 @@ std::vector<Move> AIShell::availableMoves(int** state){
 Move AIShell::makeMove(){
  	Move m;
  	std::cout<<"MAKING MOVE" << std::endl;
- 	m = getBestMove(gameState, 2, 0, MIN, MAX);
+ 	m = getBestMove(gameState, 4, 0, MIN, MAX);
 
  	return m;
 }
@@ -410,7 +410,7 @@ Move AIShell::getBestMove(int** state, int depth, int turn, int alpha, int beta)
 		std::cout<<"turn: "<< turn << std::endl;
 		int count = 0;
 		int bestVal = MIN;
-		Move m;
+		//Move m;
 		for(int move = 0; move < moveVector.size(); move++)
 		{
 			std::cout<<"PRINT THE MOVES OUT FROM THE MOVE LIST"<<std::endl;
@@ -427,17 +427,16 @@ Move AIShell::getBestMove(int** state, int depth, int turn, int alpha, int beta)
 	 	// 			std::cout<<std::endl;
 	 	// 		}
 			//toDeleteMax.push_back(Move(moveVector[move].col, moveVector[move].row));
-			m.score = getBestMove(nextGameState, depth - 1, ++turn, bestVal, beta).score;
-			m.col = moveVector[move].col; m.row = moveVector[move].row;
-
+			moveVector[move].score = getBestMove(nextGameState, depth - 1, ++turn, bestVal, beta).score;
+			//m.col = moveVector[move].col; m.row = moveVector[move].row;
 
 			// for(int i = 0; i < toDeleteMax.size(); i++)
 			// 	state[toDeleteMax[i].col][toDeleteMax[i].row] = 0;
 			// std::cout<<bestVal<<"<-----------------------------"<<std::endl;
-			if(bestVal < m.score)
+			if(bestVal < moveVector[move].score)
 			{
-				bestMove = m;
-				bestVal = m.score;
+				bestMove = moveVector[move];
+				bestVal = moveVector[move].score;
 			}
 			if(alpha < bestVal)
 				alpha = bestVal;
@@ -454,7 +453,7 @@ Move AIShell::getBestMove(int** state, int depth, int turn, int alpha, int beta)
 	else
 	{
 		int bestVal = MAX;
-		Move m;
+		//Move m;
 		int count = 0;
 		std::vector<Move> moveVector = availableMoves(state);
 		for(int move = 0; move < moveVector.size(); move++){
@@ -471,16 +470,16 @@ Move AIShell::getBestMove(int** state, int depth, int turn, int alpha, int beta)
 			// std::cout<<"THE TURN IS --------------  HUMAN "<<turn<<std::endl;
 			//toDeleteMin.push_back(Move(moveVector[move].col, moveVector[move].row));
 			
-			m.score = getBestMove(nextGameState, depth-1, ++turn, alpha, bestVal).score;
-			m.col = moveVector[move].col; m.row = moveVector[move].row;
+			moveVector[move].score = getBestMove(nextGameState, depth-1, ++turn, alpha, bestVal).score;
+			//m.col = moveVector[move].col; m.row = moveVector[move].row;
 
 			// for(int i = 0; i < toDeleteMin.size(); i++)
 			// 	state[toDeleteMin[i].col][toDeleteMin[i].row] = 0;
 
-			if(bestVal > m.score)
+			if(bestVal > moveVector[move].score)
 			{
-				bestMove = m;
-				bestVal = m.score;
+				bestMove = moveVector[move];
+				bestVal = moveVector[move].score;
 			}
 			if(beta > bestVal)
 				beta = bestVal;
