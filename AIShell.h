@@ -54,7 +54,9 @@ public:
 	void evaluatePoints(int tempCounter, int& score);
 	void diagonalLRLoop(int& tempCol, int& tempRow, int col, int row, int& count, int** state, int turn);
 	void diagonalRLLoop(int& tempCol, int& tempRow, int col, int row, int& count, int** state, int turn);
-	Move iterativeSearch(int** state, int depth, int turn);
+	Move iterativeDeepening(int depth, int** state, int turn, int alpha, int beta);
+	Move SearchForMove(int** state);
+
 
 
 };
