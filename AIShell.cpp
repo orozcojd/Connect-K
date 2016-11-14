@@ -7,6 +7,8 @@
 
 int MAX = 999999999;
 int MIN = -999999999;
+int MAXDEPTH = 1000;
+int WINNER = 9999;
 
 AIShell::AIShell(int numCols, int numRows, bool gravityOn, int** gameState, Move lastMove)
 {
@@ -106,9 +108,9 @@ void AIShell::VerticalWins(int** state, int col, int row, int turn, int& count, 
 		else if(state[col][row] == -turn)
 			topBlocked = true;
 
-		if(count == k)
+		if(count >= k)
 			{
-				score = 9999;
+				score = WINNER;
 				return;
 			}
 		if(bottomBlocked && topBlocked){
@@ -161,9 +163,9 @@ int AIShell::countHorizontalWins(int** state, int col, int row)
 		else if(state[tempCol][row] == -1)
 			rightBlocked = true;
 
-		if(aiCount == k)
+		if(aiCount >= k)
 		{
-			return 9999;
+			return WINNER;
 		}
 		evaluatePoints(aiCount, aiScore);
 		if(leftBlocked && rightBlocked)
@@ -194,9 +196,9 @@ int AIShell::countHorizontalWins(int** state, int col, int row)
 		else if(state[tempCol][row] == 1)
 			otherRBlocked = true;
 
-		if(otherCount == k)
+		if(otherCount >= k)
 		{
-			return 9999;
+			return -WINNER;
 		}
 		evaluatePoints(otherCount, otherScore);
 		if(otherLBlocked && otherRBlocked)
@@ -256,8 +258,8 @@ int AIShell::countDiagonalWinsLR(int** state, int col, int row)
 		aiCount++;
 		diagonalLRLoop(tempCol, tempRow, col, row, aiCount, state, 1);
 
-		if(aiCount == k)
-			return 9999;
+		if(aiCount >= k)
+			return WINNER;
 		
 		evaluatePoints(aiCount, aiScore);
 	}
@@ -266,8 +268,8 @@ int AIShell::countDiagonalWinsLR(int** state, int col, int row)
 		++otherCount;
 		diagonalLRLoop(tempCol, tempRow, col, row, otherCount, state, -1);
 
-		if(otherCount == k)
-			return 9999;
+		if(otherCount >= k)
+			return -WINNER;
 		evaluatePoints(otherCount,otherScore);
 	}
 
@@ -316,9 +318,9 @@ int AIShell::countDiagonalWinsRL(int** state, int col, int row)
 		aiCount++;
 		
 		diagonalRLLoop(tempCol, tempRow, col, row, aiCount, state, 1);
-		if(aiCount == k)
+		if(aiCount >= k)
 		{
-			return 9999;
+			return WINNER;
 		}
 		evaluatePoints(aiCount, aiScore);
 	}
@@ -327,9 +329,9 @@ int AIShell::countDiagonalWinsRL(int** state, int col, int row)
 		otherCount++;
 		
 		diagonalRLLoop(tempCol, tempRow, col, row, otherCount, state, 1);
-		if(otherCount == k)
+		if(otherCount >= k)
 		{
-			return 9999;
+			return -WINNER;
 		}
 		evaluatePoints(otherCount, otherScore);
 	}
@@ -337,10 +339,12 @@ int AIShell::countDiagonalWinsRL(int** state, int col, int row)
 	return aiScore - otherScore;
 }
 
-int checkForWin(int score)
+bool checkForWin(int score)
 {
-	if(score >= 9999)
-		return 9999999;
+	// std::cout<<"CALLING CHECKFORWIN WITH SCORE: "<<score<<std::endl;
+	if(score > WINNER)
+		return true;
+	return false;
 }
 
 int AIShell::countTotalWins(int** state, int turn) 
@@ -354,22 +358,40 @@ int AIShell::countTotalWins(int** state, int turn)
 
 			//Vertical Win count
 			int vertScore = vertWinCount(state, col, row);
-			checkForWin(vertScore);
+			if(checkForWin(vertScore))
+			{
+				// std::cout<<"first"<<std::endl;
+				return WINNER;
+			}
 			aiScore += vertScore;
 			
 			//Horizontal wins count
 			int horizScore = countHorizontalWins(state, col, row);
-			checkForWin(horizScore);
+			if(checkForWin(horizScore))
+			{
+				// std::cout<<"second"<<std::endl;
+				return WINNER;
+			}
 			aiScore += horizScore;
 			
 			// Diagonal wins left to right
 			int diagLRScore = countDiagonalWinsLR(state, col, row);
-			checkForWin(diagLRScore);
+			if(checkForWin(diagLRScore))
+			{
+				// std::cout<<"third"<<std::endl;
+				// std::cout<<"DIAGLR SCORE IS: "<<diagLRScore<<std::endl;
+				return WINNER;
+			}
 			aiScore += diagLRScore;
 			
 			//Diagonal wins right to left
 			int diagRLScore = countDiagonalWinsRL(state, col, row);
-			checkForWin(diagRLScore);
+			if(checkForWin(diagRLScore))
+			{
+				// std::cout<<"DIAGRL SCORE IS: "<<diagRLScore<<std::endl;
+				// std::cout<<"fourth"<<std::endl;
+				return WINNER;
+			}
 			aiScore += diagRLScore;
 			
 			//countDiagonalWinsLR(state, col row);
@@ -404,16 +426,17 @@ Move AIShell::makeMove(){
 
 // Move AIShell::iterativeSearch(int** state, int depth, int turn)
 // {
-// 	for(int i = 1000; i > 0; i--)
+// 	Move m;
+// 	for(int i = 0; i < MAXDEPTH; i++)
 // 	{
-
+// 		m = getBestMove(gameState, i, )
 // 	}
 // }
 
 Move AIShell::getBestMove(int** state, int depth, int turn, int alpha, int beta){
 	std::vector<Move> moveVector = availableMoves(state);
-	std::vector<Move> toDeleteMax;
-	std::vector<Move> toDeleteMin;
+	std::vector<Move> toDelete;
+
 	Move bestMove;
 	if(moveVector.size() == numRows * numCols || moveVector.size() == numRows * numCols - 1)
 	{
@@ -433,13 +456,12 @@ Move AIShell::getBestMove(int** state, int depth, int turn, int alpha, int beta)
 		std::cout<<"turn: "<< turn << std::endl;
 		int count = 0;
 		int bestVal = MIN;
-		//Move m;
 		for(int move = 0; move < moveVector.size(); move++)
 		{
 			std::cout<<"PRINT THE MOVES OUT FROM THE MOVE LIST"<<std::endl;
 			std::cout<<moveVector[move].col << " " <<moveVector[move].row << " "<< moveVector[move].score << std::endl;
-			int** nextGameState = clone(state);
-			nextGameState[moveVector[move].col][moveVector[move].row] = AI_PIECE;
+			//int** nextGameState = clone(state);
+			state[moveVector[move].col][moveVector[move].row] = AI_PIECE;
 
 			std::cout<<"--------------------------AI----------------------------------"<<std::endl;
 			// for(int col = 0; col < numCols; col++){
@@ -449,12 +471,12 @@ Move AIShell::getBestMove(int** state, int depth, int turn, int alpha, int beta)
 	 	// 			}
 	 	// 			std::cout<<std::endl;
 	 	// 		}
-			//toDeleteMax.push_back(Move(moveVector[move].col, moveVector[move].row));
-			moveVector[move].score = getBestMove(nextGameState, depth - 1, ++turn, bestVal, beta).score;
+			toDelete.push_back(Move(moveVector[move].col, moveVector[move].row));
+			moveVector[move].score = getBestMove(state, depth - 1, ++turn, bestVal, beta).score;
 			//m.col = moveVector[move].col; m.row = moveVector[move].row;
 
-			// for(int i = 0; i < toDeleteMax.size(); i++)
-			// 	state[toDeleteMax[i].col][toDeleteMax[i].row] = 0;
+			for(int i = 0; i < toDelete.size(); i++)
+				state[toDelete[i].col][toDelete[i].row] = 0;
 			// std::cout<<bestVal<<"<-----------------------------"<<std::endl;
 			if(bestVal < moveVector[move].score)
 			{
@@ -466,10 +488,10 @@ Move AIShell::getBestMove(int** state, int depth, int turn, int alpha, int beta)
 
 			if(beta <= bestVal)
 				break;
-			for (int i =0; i<numCols; i++){
-				delete [] nextGameState[i];
-					}
-				delete [] nextGameState;
+			// for (int i =0; i<numCols; i++){
+			// 	delete [] nextGameState[i];
+			// 		}
+			// 	delete [] nextGameState;
 		}
 		return bestMove;
 	}
@@ -480,8 +502,8 @@ Move AIShell::getBestMove(int** state, int depth, int turn, int alpha, int beta)
 		int count = 0;
 		std::vector<Move> moveVector = availableMoves(state);
 		for(int move = 0; move < moveVector.size(); move++){
-			int** nextGameState = clone(state);
-			nextGameState[moveVector[move].col][moveVector[move].row] = HUMAN_PIECE;
+			//int** nextGameState = clone(state);
+			state[moveVector[move].col][moveVector[move].row] = HUMAN_PIECE;
 			// std::cout<<"----------------------------HUMAN---------------------------------"<<std::endl;
 			// for(int col = 0; col < numCols; col++){
 	 	// 			for(int row = 0; row < numRows; row++)
@@ -491,13 +513,13 @@ Move AIShell::getBestMove(int** state, int depth, int turn, int alpha, int beta)
 	 	// 			std::cout<<std::endl;
 	 	// 		}
 			// std::cout<<"THE TURN IS --------------  HUMAN "<<turn<<std::endl;
-			//toDeleteMin.push_back(Move(moveVector[move].col, moveVector[move].row));
+			toDelete.push_back(Move(moveVector[move].col, moveVector[move].row));
 			
-			moveVector[move].score = getBestMove(nextGameState, depth-1, ++turn, alpha, bestVal).score;
+			moveVector[move].score = getBestMove(state, depth - 1, ++turn, alpha, bestVal).score;
 			//m.col = moveVector[move].col; m.row = moveVector[move].row;
 
-			// for(int i = 0; i < toDeleteMin.size(); i++)
-			// 	state[toDeleteMin[i].col][toDeleteMin[i].row] = 0;
+			for(int i = 0; i < toDelete.size(); i++)
+				state[toDelete[i].col][toDelete[i].row] = 0;
 
 			if(bestVal > moveVector[move].score)
 			{
@@ -510,10 +532,10 @@ Move AIShell::getBestMove(int** state, int depth, int turn, int alpha, int beta)
 			if(bestVal <= alpha)
 				break;
 
-			for (int i =0; i<numCols; i++){
-				delete [] nextGameState[i];
-					}
-				delete [] nextGameState;
+			// for (int i =0; i<numCols; i++){
+			// 	delete [] nextGameState[i];
+			// 		}
+			// 	delete [] nextGameState;
 		}
 		return bestMove;
 	}
