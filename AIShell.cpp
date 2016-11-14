@@ -82,38 +82,50 @@ void AIShell::evaluatePoints(int tempCounter, int& score)
 			score = 12;
 		}
 }
-int AIShell::countVerticalWins(int** state, int col, int row)
+void AIShell::VerticalWins(int** state, int col, int row, int turn, int& count, int& score)
 {	
+	
+	// int tempCol = col; int tempRow = row;
+	bool bottomBlocked = false; bool topBlocked = false;
+
+	if(state[col][row] == turn){
+		count++;
+
+		if(row - 1 < 0)
+			bottomBlocked = true;
+		else if(state[col][row - 1] == -turn)
+			bottomBlocked = true;
+
+		while((row + 1 < numRows) && state[col][row + 1] == turn)
+		{ 
+			++row; ++count;	
+		}
+
+		if(row >= numRows)
+			topBlocked = true;
+		else if(state[col][row] == -turn)
+			topBlocked = true;
+
+		if(count == k)
+			{
+				score = 9999;
+				return;
+			}
+		if(bottomBlocked && topBlocked){
+			score = 0;
+			return;
+		}
+		evaluatePoints(count, score);
+	}
+}
+
+int AIShell::vertWinCount(int** state, int col, int row)
+{
 	int aiCount = 0; int otherCount = 0;
 	int aiScore = 0; int otherScore = 0;
-	if(state[col][row] == 1)
-	{
-		aiCount++;
-		while((row + 1 < numRows) && state[col][row + 1] == 1)
-		{ 
-			++row; ++aiCount;	
-		}
-		if(aiCount == k)
-			{
-				return 9999;
-			}
-		evaluatePoints(aiCount, aiScore);
-	}
 
-	if(state[col][row] == -1)
-	{
-		otherCount++;
-		while((row + 1 < numRows) && state[col][row + 1] == -1)
-		{ 
-			++row; ++otherCount;	
-		}
-		if(otherCount == k)
-			{
-				return 9999;
-			}
-		evaluatePoints(otherCount, otherScore);
-	}
-
+	VerticalWins(state, col, row, 1, aiCount, aiScore);
+	VerticalWins(state, col, row, -1, otherCount, otherScore);
 	return aiScore - otherScore;
 
 }
@@ -200,8 +212,7 @@ void AIShell::diagonalLRLoop(int& tempCol, int& tempRow, int col, int row, int& 
 {
 	bool topDiagBocked = false; bool bottomDiagBlocked = false;
 
-	if(state[col][row] == turn)
-	{
+	if(state[col][row] == turn){
 		while((tempRow + 1 < numRows && tempCol + 1 < numCols) && state[tempCol + 1][tempRow + 1] == turn)
 		{
 			++count; ++tempRow; ++tempCol;
@@ -213,9 +224,9 @@ void AIShell::diagonalLRLoop(int& tempCol, int& tempRow, int col, int row, int& 
 		else if(tempRow == numRows || tempCol == numCols)
 			topDiagBocked = true;
 
-		//Reset column and row to iriginal position before checking the bottom left diagonal
+		//Reset column and row to original position before checking the bottom left diagonal
 		tempCol = col; tempRow = row;
-		while((tempRow - 1 > numRows && tempCol - 1 > numCols) && state[tempCol - 1][tempRow - 1] == turn)
+		while((tempRow - 1 >= 0 && tempCol - 1 >= 0) && state[tempCol - 1][tempRow - 1] == turn)
 		{
 			++count; --tempRow; --tempCol;
 		}
@@ -224,14 +235,14 @@ void AIShell::diagonalLRLoop(int& tempCol, int& tempRow, int col, int row, int& 
 			if(state[tempCol][tempRow] == -turn)
 				bottomDiagBlocked = true;
 
-		else if(tempRow < numRows || tempCol < numCols)
+		else if(tempRow < 0 || tempCol < 0)
 			bottomDiagBlocked = true;
 
 		//If both diagonals are blocking, don't count this score
 		if(topDiagBocked && bottomDiagBlocked)
 			count = 0;
+		
 	}
-
 }
 
 int AIShell::countDiagonalWinsLR(int** state, int col, int row)
@@ -246,9 +257,8 @@ int AIShell::countDiagonalWinsLR(int** state, int col, int row)
 		diagonalLRLoop(tempCol, tempRow, col, row, aiCount, state, 1);
 
 		if(aiCount == k)
-		{
 			return 9999;
-		}
+		
 		evaluatePoints(aiCount, aiScore);
 	}
 	else if(state[col][row] == -1)
@@ -268,7 +278,7 @@ int AIShell::countDiagonalWinsLR(int** state, int col, int row)
 void AIShell::diagonalRLLoop(int& tempCol, int& tempRow, int col, int row, int& count, int** state, int turn)
 {
 	bool leftBlocked = false; bool rightBlocked = false;	
-	while((tempCol - 1 > numCols && tempRow + 1 < numRows) && state[tempCol - 1][tempRow + 1] == turn)
+	while((tempCol - 1 >= 0 && tempRow + 1 < numRows) && state[tempCol - 1][tempRow + 1] == turn)
 	{
 		++count; --tempCol; ++tempRow;
 	}
@@ -280,7 +290,7 @@ void AIShell::diagonalRLLoop(int& tempCol, int& tempRow, int col, int row, int& 
 		leftBlocked = true;
 
 	tempCol = col; tempRow = row;
-	while((tempCol + 1 > numCols && tempRow - 1 > numRows) && state[tempCol + 1][tempRow - 1] == turn)
+	while((tempCol + 1 < numCols && tempRow - 1 >= 0) && state[tempCol + 1][tempRow - 1] == turn)
 	{
 		++count; ++tempCol; --tempRow;
 	}
@@ -327,6 +337,12 @@ int AIShell::countDiagonalWinsRL(int** state, int col, int row)
 	return aiScore - otherScore;
 }
 
+int checkForWin(int score)
+{
+	if(score >= 9999)
+		return 9999999;
+}
+
 int AIShell::countTotalWins(int** state, int turn) 
 {
 	std::cout<<"CALLING COUNT TOTAL WINS!!!!!!!!!!!"<<std::endl;
@@ -337,30 +353,29 @@ int AIShell::countTotalWins(int** state, int turn)
 		{
 
 			//Vertical Win count
-			// int vertScore = countVerticalWins(state, col, row);
-			// aiScore += vertScore;
+			int vertScore = vertWinCount(state, col, row);
+			checkForWin(vertScore);
+			aiScore += vertScore;
 			
 			//Horizontal wins count
 			int horizScore = countHorizontalWins(state, col, row);
-			aiHScore += horizScore;
+			checkForWin(horizScore);
+			aiScore += horizScore;
 			
-
-			//Diagonal wins left to right
+			// Diagonal wins left to right
 			int diagLRScore = countDiagonalWinsLR(state, col, row);
-			aiHScore += diagLRScore;
+			checkForWin(diagLRScore);
+			aiScore += diagLRScore;
 			
-
 			//Diagonal wins right to left
 			int diagRLScore = countDiagonalWinsRL(state, col, row);
-			aiHScore += diagRLScore;
+			checkForWin(diagRLScore);
+			aiScore += diagRLScore;
 			
-
 			//countDiagonalWinsLR(state, col row);
-			if(aiScore >= 9999)
-				return 9999;
 		}	 	
 		// if(turn % 2 == 0)
-			return aiScore + aiHScore;
+			return aiScore;
 		// return otherScore + otherHScore;
 }
 
@@ -382,10 +397,18 @@ std::vector<Move> AIShell::availableMoves(int** state){
 Move AIShell::makeMove(){
  	Move m;
  	std::cout<<"MAKING MOVE" << std::endl;
- 	m = getBestMove(gameState, 4, 0, MIN, MAX);
+ 	m = getBestMove(gameState, 1, 0, MIN, MAX);
 
  	return m;
 }
+
+// Move AIShell::iterativeSearch(int** state, int depth, int turn)
+// {
+// 	for(int i = 1000; i > 0; i--)
+// 	{
+
+// 	}
+// }
 
 Move AIShell::getBestMove(int** state, int depth, int turn, int alpha, int beta){
 	std::vector<Move> moveVector = availableMoves(state);

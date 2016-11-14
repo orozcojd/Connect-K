@@ -46,13 +46,15 @@ public:
 	int** clone(int** gamestate);
 	int countTotalWins(int** gameState, int turn);
 	int sizeOfAvailableMoves(int** gameState);
-	int countVerticalWins(int** state, int col, int row);
+	void VerticalWins(int** state, int col, int row, int turn, int& count, int& score);
+	int vertWinCount(int** state, int col, int row);
 	int countHorizontalWins(int** state, int col, int row);
 	int countDiagonalWinsLR(int** state, int col, int row);
 	int countDiagonalWinsRL(int** state, int col, int row);
 	void evaluatePoints(int tempCounter, int& score);
 	void diagonalLRLoop(int& tempCol, int& tempRow, int col, int row, int& count, int** state, int turn);
 	void diagonalRLLoop(int& tempCol, int& tempRow, int col, int row, int& count, int** state, int turn);
+	Move iterativeSearch(int** state, int depth, int turn);
 
 
 };
