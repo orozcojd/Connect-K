@@ -329,11 +329,11 @@ std::tuple<int, int> AIShell::countDiagonalWinsRL(int** state, int col, int row)
 		}
 		evaluatePoints(aiCount, aiScore);
 	}
-	else if(state[col][row] == 1)
+	else if(state[col][row] == -1)
 	{
 		otherCount++;
 		
-		diagonalRLLoop(tempCol, tempRow, col, row, otherCount, state, 1);
+		diagonalRLLoop(tempCol, tempRow, col, row, otherCount, state, -1);
 		if(otherCount >= k)
 		{
 			return std::make_tuple(0, WINNER);
