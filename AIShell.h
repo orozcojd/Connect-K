@@ -47,8 +47,8 @@ public:
 	int countTotalWins(int** gameState, int turn);
 	int sizeOfAvailableMoves(int** gameState);
 	void VerticalWins(int** state, int col, int row, int turn, int& count, int& score);
-	int vertWinCount(int** state, int col, int row);
-	int countHorizontalWins(int** state, int col, int row);
+	std::tuple<int, int> vertWinCount(int** state, int col, int row);
+	std::tuple<int, int> countHorizontalWins(int** state, int col, int row);
 	int countDiagonalWinsLR(int** state, int col, int row);
 	int countDiagonalWinsRL(int** state, int col, int row);
 	void evaluatePoints(int tempCounter, int& score);
