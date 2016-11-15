@@ -8,11 +8,9 @@ gives each k-n a weight to help determine the better move.
 It also blocks moves when the other player is about to win.
 
 ## To run this project on Windows:
-
-g++ ConnectK.cpp Move.cpp AIShell.cpp -o myAI
-java -jar ConnectK_1.8.jar cpp:myAI.exe
+### g++ ConnectK.cpp Move.cpp AIShell.cpp -o myAI 
+### java -jar ConnectK_1.8.jar cpp:myAI.exe
 
 ## To run this project on Linux:
-
-g++ ConnectK.cpp Move.cpp AIShell.cpp -o myAI
-java -jar ConnectK_1.8.jar cpp:myAI
+### g++ ConnectK.cpp Move.cpp AIShell.cpp -o myAI
+### java -jar ConnectK_1.8.jar cpp:myAI
