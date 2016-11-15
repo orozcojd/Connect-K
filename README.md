@@ -1,10 +1,6 @@
 # Discrete-Project
 
-This game uses a mini-max algorithm with alpha beta pruning and iterative deepening to increase
-the search time.
-It has a heuristic function that loops over winning streaks on the board in all directions and 
-gives each k-n a weight to help determine the better move. 
-It also blocks moves when the other player is about to win.
+I will update this README when I am finished with this course
 
 ## To run this project on Windows:
 ### g++ ConnectK.cpp Move.cpp AIShell.cpp -o myAI 
