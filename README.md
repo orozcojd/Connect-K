@@ -1,5 +1,5 @@
 # Discrete-Project
-## This is a connect-k game meaning any sized board connecting k pieces to win
+## This is a connect-k game; any sized board connecting k pieces to win
 
 This game uses a mini-max algorithm with alpha beta pruning and iterative deepening to increase
 the search time.
