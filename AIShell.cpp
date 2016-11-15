@@ -252,7 +252,7 @@ void AIShell::diagonalLRLoop(int& tempCol, int& tempRow, int col, int row, int& 
 	}
 }
 
-int AIShell::countDiagonalWinsLR(int** state, int col, int row)
+std::tuple<int, int> AIShell::countDiagonalWinsLR(int** state, int col, int row)
 {
 	int aiCount = 0; int otherCount = 0;
 	int aiScore = 0; int otherScore = 0;
@@ -264,7 +264,7 @@ int AIShell::countDiagonalWinsLR(int** state, int col, int row)
 		diagonalLRLoop(tempCol, tempRow, col, row, aiCount, state, 1);
 
 		if(aiCount >= k)
-			return WINNER;
+			return std::make_tuple(WINNER, 0);;
 		
 		evaluatePoints(aiCount, aiScore);
 	}
@@ -274,11 +274,11 @@ int AIShell::countDiagonalWinsLR(int** state, int col, int row)
 		diagonalLRLoop(tempCol, tempRow, col, row, otherCount, state, -1);
 
 		if(otherCount >= k)
-			return WINNER;
+			return std::make_tuple(0, WINNER);
 		evaluatePoints(otherCount,otherScore);
 	}
 
-	return aiScore;
+	return std::make_tuple(aiScore, otherScore);
 }
 
 
@@ -312,7 +312,7 @@ void AIShell::diagonalRLLoop(int& tempCol, int& tempRow, int col, int row, int& 
 		count = 0;
 }
 
-int AIShell::countDiagonalWinsRL(int** state, int col, int row)
+std::tuple<int, int> AIShell::countDiagonalWinsRL(int** state, int col, int row)
 {
 	int aiCount = 0; int otherCount = 0;
 	int aiScore = 0; int otherScore = 0;
@@ -325,7 +325,7 @@ int AIShell::countDiagonalWinsRL(int** state, int col, int row)
 		diagonalRLLoop(tempCol, tempRow, col, row, aiCount, state, 1);
 		if(aiCount >= k)
 		{
-			return WINNER;
+			return std::make_tuple(WINNER, 0);
 		}
 		evaluatePoints(aiCount, aiScore);
 	}
@@ -336,12 +336,12 @@ int AIShell::countDiagonalWinsRL(int** state, int col, int row)
 		diagonalRLLoop(tempCol, tempRow, col, row, otherCount, state, 1);
 		if(otherCount >= k)
 		{
-			return WINNER;
+			return std::make_tuple(0, WINNER);
 		}
 		evaluatePoints(otherCount, otherScore);
 	}
 
-	return aiScore;
+	return std::make_tuple(aiScore, otherScore);
 }
 
 bool checkForWin(int score)
@@ -382,23 +382,23 @@ int AIShell::countTotalWins(int** state, int turn)
 			aiScore += horizScore;
 			
 			// Diagonal wins left to right
-			int diagLRScore = countDiagonalWinsLR(state, col, row);
-			// if(checkForWin(diagLRScore))
-			// {
-			// 	// std::cout<<"third"<<std::endl;
-			// 	// std::cout<<"DIAGLR SCORE IS: "<<diagLRScore<<std::endl;
-			// 	return WINNER;
-			// }
+			int diagLRScore = std::get<0>(countDiagonalWinsLR(state, col, row));
+			otherScore = std::get<1>(countDiagonalWinsLR(state, col, row));
+			if(checkForWin(otherScore))
+			{
+				// std::cout<<"second"<<std::endl;
+				return -WINNER;
+			}
 			aiScore += diagLRScore;
 			
 			//Diagonal wins right to left
-			int diagRLScore = countDiagonalWinsRL(state, col, row);
-			// if(checkForWin(diagRLScore))
-			// {
-			// 	// std::cout<<"DIAGRL SCORE IS: "<<diagRLScore<<std::endl;
-			// 	// std::cout<<"fourth"<<std::endl;
-			// 	return WINNER;
-			// }
+			int diagRLScore = std::get<0>(countDiagonalWinsRL(state, col, row));
+			otherScore = std::get<1>(countDiagonalWinsRL(state, col, row));
+			if(checkForWin(otherScore))
+			{
+				// std::cout<<"second"<<std::endl;
+				return -WINNER;
+			}
 			aiScore += diagRLScore;
 			
 			//countDiagonalWinsLR(state, col row);
