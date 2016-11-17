@@ -24,17 +24,18 @@ private:
 	Move lastMove; //this is the move made last by your opponent. If your opponent has not made a move yet (you move first) then this move will hold the value (-1, -1) instead.
 	int AImove;
 	int Winner;
+	int moves;
+
 
 public:
 	int deadline; //this is how many milliseconds the AI has to make move.
 	int k;        // k is the number of pieces a player must get in a row/column/diagonal to win the game. IE in connect 4, this variable would be 4
-	int moves;
-	
+
 	AIShell(int numCols, int numRows, bool gravityOn, int** gameState, Move lastMove);
 	AIShell(const AIShell &toCopy);
 	~AIShell();
 	Move makeMove();
-	Move getBestMove(int** gamestate, int depth, int turn, int alpha, int beta);
+	Move miniMax(int** gamestate, int depth, int turn, int alpha, int beta);
 	std::vector<Move> availableMoves(int** gameState);
 	int assignHeuristic(Move m);
 	void callGetBestMove();
@@ -58,7 +59,6 @@ public:
 	Move iterativeDeepening(int depth, int** state, int turn, int alpha, int beta);
 	Move SearchForMove(int** state);
 	void initializeGlobalMoves(int& numMoves);
-
 
 
 
