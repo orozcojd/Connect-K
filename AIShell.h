@@ -56,6 +56,8 @@ public:
 	void diagonalRLLoop(int& tempCol, int& tempRow, int col, int row, int& count, int** state, int turn);
 	Move iterativeDeepening(int depth, int** state, int turn, int alpha, int beta);
 	Move SearchForMove(int** state);
+	void initializeGlobalMoves(int& numMoves);
+
 
 
 

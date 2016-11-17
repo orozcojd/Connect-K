@@ -52,7 +52,7 @@ AIShell* makeAIShellFromInput(){
 			int lastMoveRow = g;
 
 			//add the deadline here:
-			int deadline = -1;
+			int deadline = 5000;
 			cin >>g;
 			deadline = g;
 

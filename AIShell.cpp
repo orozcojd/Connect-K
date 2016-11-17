@@ -4,11 +4,11 @@
 #include <cstdlib>
 #include <ctime>
 #include <tuple>
-#include <thread>
-#include <chrono>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "time.h"
+
+
 
 int MAX = 999999999;
 int MIN = -999999999;
@@ -16,6 +16,9 @@ int MAXDEPTH = 1000;
 int WINNER = 9999;
 long TIME = 0.0;
 Move BESTMOVE;
+int AVILABLEMOVES = -1;
+clock_t TIME1;
+
 
 std::vector<Move> bestMoveList;
 AIShell::AIShell(int numCols, int numRows, bool gravityOn, int** gameState, Move lastMove)
@@ -69,6 +72,11 @@ int** AIShell::clone(int** state)
 			cloned[col][row] = state[col][row];
 		}
 	return cloned;
+}
+
+void AIShell::initializeGlobalMoves(int& numMoves)
+{
+	AVILABLEMOVES = numCols * numRows;
 }
 
 void AIShell::evaluatePoints(int tempCounter, int& score)
@@ -423,26 +431,21 @@ std::vector<Move> AIShell::availableMoves(int** state){
 	return moveVector;
 }	
 
-void sleepyTime()
-{
-	auto time1 = std::chrono::high_resolution_clock::now();
-	std::this_thread::sleep_for(std::chrono::seconds(4));
-	auto time2 = std::chrono::high_resolution_clock::now();
-	TIME = std::chrono::duration_cast<std::chrono::milliseconds>(time2 - time1).count();
-}
-
 Move AIShell::makeMove(){
-
+	TIME1 = clock();
  	Move m;
  	//m = getBestMove(gameState, 1, 0, MIN, MAX);
 	//pthread_t thread1, thread2;
-
+ 	if(AVILABLEMOVES == -1)
+ 		initializeGlobalMoves(AVILABLEMOVES);
  	m = SearchForMove(gameState);
- 	return m;
+	--AVILABLEMOVES;
+	return m;
 }
 
 Move AIShell::SearchForMove(int** state)
 {
+	
 	for(int depth = 1; depth < MAXDEPTH; depth++)
 	{
 		std::cout<<"CURRENTLY AT DEPTH: "<<depth<<std::endl;
@@ -457,7 +460,7 @@ Move AIShell::iterativeDeepening(int depth, int** state, int turn, int alpha, in
 	if(TIME > 4000)
 		return BESTMOVE;
 	Move m = getBestMove(state, depth, turn, alpha, beta);
-	if(m.score >= WINNER)
+	if(m.score >= WINNER || m.score == -1)
 		return m;
 	if(depth > 0) 
 	{
@@ -465,6 +468,7 @@ Move AIShell::iterativeDeepening(int depth, int** state, int turn, int alpha, in
 		if(move.score != 0)
 			return move;
 	}
+	std::cout<<"RIGHT HERE"<<std::endl;
 	m.score = 0;
 	return m;
 }
@@ -472,38 +476,56 @@ Move AIShell::iterativeDeepening(int depth, int** state, int turn, int alpha, in
 Move AIShell::getBestMove(int** state, int depth, int turn, int alpha, int beta){
 	std::vector<Move> moveVector = availableMoves(state);
 	std::vector<Move> toDelete;
-	if(TIME >= 4500)
-		return BESTMOVE;
 	Move bestMove;
+	// if(moveVector.size() == 1 && turn == -1)
+	// 	return moveVector[0];
+	clock_t TIME2 = clock();
+	if((float)(TIME2 - TIME1) > 400.5)
+	{
+		// bestMove.score = WINNER;
+		return bestMove;
+	}
 	if(moveVector.size() == numRows * numCols || moveVector.size() == numRows * numCols - 1)
 	{
+
 		if(state[numCols/2][numRows/2] == NO_PIECE)
 			return Move(numCols/2, numRows/2);
 		else
 			return Move(numCols/2 - 1, numRows/2 - 1);
 	}
+	// else if(depth >  && moveVector.size() == 1)
+	// 	return moveVector[0];
+
 	else if(depth == 0 || moveVector.size() == 0)
 	{
+		std::cout<<"BEFORE CRASH WITH DEPTH: "<<moveVector.size()<<" TURN: "<<turn<<std::endl;
 		Move m(countTotalWins(state, turn));
 		std::cout<< "--------------------SCORE GIVEN OF: "<<m.score<<" ---------------------------"<<std::endl;
 		return m;
 	}
 	else if(turn % 2 == 0 )
 	{
+
+		std::cout<<"BEFORE CRASH"<<std::endl;
 		int count = 0;
 		int bestVal = MIN;
-		
+			
+
 		for(int move = 0; move < moveVector.size(); move++)
-		{
-			std::cout<<"PRINT THE MOVES OUT FROM THE MOVE LIST"<<std::endl;
-			std::cout<<moveVector[move].col << " " <<moveVector[move].row << " "<< moveVector[move].score << std::endl;
+		{		
+			std::cout<<"PRINT THE MOVES OUT FROM THE MOVE LIST with depth: "<<depth<<std::endl;
 			//int** nextGameState = clone(state);
 			state[moveVector[move].col][moveVector[move].row] = AI_PIECE;
 			std::cout<<"--------------------------AI----------------------------------"<<std::endl;
 			toDelete.push_back(Move(moveVector[move].col, moveVector[move].row));
 			Move m = getBestMove(state, depth - 1, ++turn, bestVal, beta);
 			moveVector[move].score = m.score;
-			
+
+			// if(depth > (moveVector.size()*10))
+			// {
+			// 	moveVector[move].score = -1;
+			// 	return moveVector[move];
+			// }
 			//m.col = moveVector[move].col; m.row = moveVector[move].row;
 			for(int i = 0; i < toDelete.size(); i++)
 				state[toDelete[i].col][toDelete[i].row] = 0;
@@ -531,10 +553,12 @@ Move AIShell::getBestMove(int** state, int depth, int turn, int alpha, int beta)
 			// 		}
 			// 	delete [] nextGameState;
 		}
+		BESTMOVE = bestMove;
 		return bestMove;
 	}
 	else
 	{
+
 		int bestVal = MAX;
 		//Move m;
 		int count = 0;
@@ -551,7 +575,7 @@ Move AIShell::getBestMove(int** state, int depth, int turn, int alpha, int beta)
 				std::cout<<"YES THIS IS THE WINNING SCORE FOR OTHER PERSON BUT ON THIS DEPTH LEVEL: "<<depth<<std::endl;
 				bestMove = moveVector[move];
 				return bestMove;
-			}	
+			}
 			//m.col = moveVector[move].col; m.row = moveVector[move].row;
 			for(int i = 0; i < toDelete.size(); i++)
 				state[toDelete[i].col][toDelete[i].row] = 0;
