@@ -10,7 +10,7 @@
 
 int MAX = 999999999;
 int MIN = -999999999;
-int MAXDEPTH = 10000;
+int MAXDEPTH = 100000;
 int WINNER = 9999;
 clock_t TIME1;
 
@@ -301,13 +301,11 @@ bool checkForWin(int score)
 
 int AIShell::countTotalWins(int** state, int turn) 
 {
-	std::cout<<"CALLING COUNT TOTAL WINS!!!!!!!!!!!"<<std::endl;
 	int aiScore = 0; int otherScore = 0;
 	int aiHScore = 0; int otherHScore = 0;
 	for(int col = 0; col < numCols; col++)
 		for(int row = 0; row < numRows; row++)
 		{
-
 			//Vertical Win count
 			int vertScore = std::get<0>(vertWinCount(state, col, row));
 			int otherScore = std::get<1>(vertWinCount(state,col,row));
@@ -420,7 +418,6 @@ Move AIShell::SearchForMove(int** state)
 	TIME1 = clock();
 	for(int depth = 1; depth < MAXDEPTH; depth++)
 	{
-		std::cout<<"CURRENTLY AT DEPTH: "<<depth<<std::endl;
 		Move m = iterativeDeepening(depth, state, 0, MIN, MAX);
 		if(m.score != 0)
 			return m;
@@ -428,7 +425,7 @@ Move AIShell::SearchForMove(int** state)
 }
 bool triggered()
 {
-	if((float)(clock() - TIME1)/CLOCKS_PER_SEC > .55) //seconds
+	if((float)(clock() - TIME1)/CLOCKS_PER_SEC > 4) //seconds
 		return true;
 	return false;
 }
@@ -444,7 +441,6 @@ Move AIShell::iterativeDeepening(int depth, int** state, int turn, int alpha, in
 		if(move.score != 0)
 			return move;
 	}
-	std::cout<<"RIGHT HERE: "<< ++count<< std::endl;
 	m.score = 0;
 	return m;
 }
@@ -457,7 +453,6 @@ Move AIShell::miniMax(int** state, int depth, int turn, int alpha, int beta){
 	if(depth == 0 || moveVector.size() == 0)
 	{
 		Move m(countTotalWins(state, turn));
-		std::cout<< "--------------------SCORE GIVEN OF: "<<m.score<<" ---------------------------"<<std::endl;
 		return m;
 	}
 	else if(turn % 2 == 0 )
@@ -466,13 +461,10 @@ Move AIShell::miniMax(int** state, int depth, int turn, int alpha, int beta){
 		int bestVal = MIN;
 		for(int move = 0; move < moveVector.size(); move++)
 		{		
-			std::cout<<"PRINT THE MOVES OUT FROM THE MOVE LIST with depth: "<<depth<<std::endl;
 			state[moveVector[move].col][moveVector[move].row] = AI_PIECE;
-			std::cout<<"--------------------------AI----------------------------------"<<std::endl;
 			toDelete.push_back(Move(moveVector[move].col, moveVector[move].row));
 			Move m = miniMax(state, depth - 1, ++turn, bestVal, beta);
 			moveVector[move].score = m.score;
-			std::cout<<"----------- triggered: "<<(float)(clock() - TIME1)/CLOCKS_PER_SEC<<std::endl;
 			for(int i = 0; i < toDelete.size(); i++)
 				state[toDelete[i].col][toDelete[i].row] = 0;
 			if(m.score == -WINNER)
