@@ -14,6 +14,7 @@ int MAXDEPTH = 100000;
 int WINNER = 9999;
 clock_t TIME1;
 int MOVESMADE = 0;
+int GLOBALDEPTH;
 
 AIShell::AIShell(int numCols, int numRows, bool gravityOn, int** gameState, Move lastMove)
 {
@@ -317,7 +318,7 @@ int AIShell::countTotalWins(int** state, int turn)
 			//Vertical Win count
 			int vertScore = std::get<0>(vertWinCount(state, col, row));
 			int otherScore = std::get<1>(vertWinCount(state,col,row));
-			if(checkForWin(otherScore))
+			if(checkForWin(otherScore) && GLOBALDEPTH<=3)
 			{
 				return -WINNER;
 			}
@@ -330,7 +331,7 @@ int AIShell::countTotalWins(int** state, int turn)
 			//Horizontal wins count
 			int horizScore = std::get<0>(countHorizontalWins(state, col, row));
 			otherScore = std::get<1>(countHorizontalWins(state, col, row));
-			if(checkForWin(otherScore))
+			if(checkForWin(otherScore) && GLOBALDEPTH<=3)
 			{
 				return -WINNER;
 			}
@@ -343,7 +344,7 @@ int AIShell::countTotalWins(int** state, int turn)
 			// Diagonal wins left to right
 			int diagLRScore = std::get<0>(countDiagonalWinsLR(state, col, row));
 			otherScore = std::get<1>(countDiagonalWinsLR(state, col, row));
-			if(checkForWin(diagLRScore))
+			if(checkForWin(diagLRScore) && GLOBALDEPTH<=3)
 			{
 				return WINNER;
 			}
@@ -356,7 +357,7 @@ int AIShell::countTotalWins(int** state, int turn)
 			//Diagonal wins right to left
 			int diagRLScore = std::get<0>(countDiagonalWinsRL(state, col, row));
 			otherScore = std::get<1>(countDiagonalWinsRL(state, col, row));
-			if(checkForWin(otherScore))
+			if(checkForWin(otherScore) && GLOBALDEPTH<=3)
 			{
 				return -WINNER;
 			}
@@ -442,6 +443,7 @@ Move AIShell::SearchForMove(int** state)
 	TIME1 = clock();
 	for(int depth = 1; depth < MAXDEPTH; depth++)
 	{
+		GLOBALDEPTH = depth;
 		Move m = iterativeDeepening(depth, state, 0, MIN, MAX);
 		if(m.score != 0)
 			return m;
@@ -449,7 +451,7 @@ Move AIShell::SearchForMove(int** state)
 }
 bool triggered()
 {
-	if((float)(clock() - TIME1)/CLOCKS_PER_SEC > 4) //seconds
+	if((float)(clock() - TIME1)/CLOCKS_PER_SEC > 4.8) //seconds
 		return true;
 	return false;
 }
