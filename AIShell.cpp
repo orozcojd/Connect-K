@@ -388,7 +388,7 @@ std::vector<Move> AIShell::availableMoves(int** state){
 	}
 	else
 	{
-		//push the middle of the board into available moves vector first
+		// push the middle of the board into available moves vector first
 		for(int col = numCols/2 - 1; col < numCols/2 + numCols/3; col++)
 			for(int row = 0; row < numRows; row++)
 			{
@@ -398,7 +398,7 @@ std::vector<Move> AIShell::availableMoves(int** state){
 					moveVector.push_back(m);
 				}
 			}
-			//push the front of the gameboard into available moves vector
+			// push the front of the gameboard into available moves vector
 		for(int col = 0; col < numCols/2 - 1; col++)
 			for(int row = 0; row < numRows; row++)
 			{
@@ -431,15 +431,17 @@ Move AIShell::makeMove(){
 }
 Move AIShell::SearchForMove(int** state)
 {
-	// std::vector<Move> moveVector = availableMoves(state);
-	// if(moveVector.size() <=2)
-	// 	return moveVector[0];
-	if(MOVESMADE <= 1)
+	if(MOVESMADE <= 2)
 	{
+		//pieces to place to speed up the initial game. Up to four pieces in the middle to start
 		if(state[numCols/2][numRows/2] == NO_PIECE)
 			return Move(numCols/2, numRows/2);
+		else if(state[numCols/2 - 1][numRows/2 - 1] == NO_PIECE)
+			return Move(numCols/2 - 1,numRows/2 - 1);
+		else if(state[numCols/2-1][numRows/2-1] == NO_PIECE)
+			return Move(numCols/2,numRows/2 - 1);
 		else
-			return Move(numCols/2 - 1, numRows/2 - 1);
+			return Move(numCols/2-1, numRows/2);
 	}
 	TIME1 = clock();
 	for(int depth = 1; depth < MAXDEPTH; depth++)
@@ -452,7 +454,7 @@ Move AIShell::SearchForMove(int** state)
 }
 bool triggered()
 {
-	if((float)(clock() - TIME1)/CLOCKS_PER_SEC > 4.8) //seconds
+	if((float)(clock() - TIME1)/CLOCKS_PER_SEC > 4.7) //seconds
 		return true;
 	return false;
 }
@@ -491,6 +493,7 @@ Move AIShell::miniMax(int** state, int depth, int turn, int alpha, int beta){
 			state[moveVector[move].col][moveVector[move].row] = AI_PIECE;
 			toDelete.push_back(Move(moveVector[move].col, moveVector[move].row));
 			Move m = miniMax(state, depth - 1, ++turn, bestVal, beta);
+
 			moveVector[move].score = m.score;
 			for(int i = 0; i < toDelete.size(); i++)
 				state[toDelete[i].col][toDelete[i].row] = 0;
