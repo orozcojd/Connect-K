@@ -13,7 +13,7 @@ int MIN = -999999999;
 int MAXDEPTH = 100000;
 int WINNER = 9999;
 clock_t TIME1;
-
+int MOVESMADE = 0;
 
 AIShell::AIShell(int numCols, int numRows, bool gravityOn, int** gameState, Move lastMove)
 {
@@ -123,7 +123,7 @@ std::tuple<int, int> AIShell::countHorizontalWins(int** state, int col, int row)
 			++aiCount; ++tempCol;
 		}
 
-		if(tempCol = numCols)
+		if(tempCol == numCols)
 			rightBlocked = true;
 		else if(state[tempCol][row] == -1)
 			rightBlocked = true;
@@ -156,7 +156,7 @@ std::tuple<int, int> AIShell::countHorizontalWins(int** state, int col, int row)
 			++otherCount; ++tempCol;
 		}
 
-		if(tempCol = numCols)
+		if(tempCol == numCols)
 			otherRBlocked = true;
 		else if(state[tempCol][row] == 1)
 			otherRBlocked = true;
@@ -183,8 +183,10 @@ void AIShell::diagonalLRLoop(int& tempCol, int& tempRow, int col, int row, int& 
 		}
 		//Checks to see if diagonal top right is blocked
 		if(tempRow < numRows && tempCol < numCols)
+		{
 			if(state[tempCol][tempRow] == -turn)
 				topDiagBocked = true;
+		}
 		else if(tempRow == numRows || tempCol == numCols)
 			topDiagBocked = true;
 
@@ -196,8 +198,10 @@ void AIShell::diagonalLRLoop(int& tempCol, int& tempRow, int col, int row, int& 
 		}
 		//Checks to see if diagonal bottom left is blocked
 		if(tempCol >= 0 && tempRow >= 0)
+		{
 			if(state[tempCol][tempRow] == -turn)
 				bottomDiagBlocked = true;
+		}
 
 		else if(tempRow < 0 || tempCol < 0)
 			bottomDiagBlocked = true;
@@ -241,8 +245,10 @@ void AIShell::diagonalRLLoop(int& tempCol, int& tempRow, int col, int row, int& 
 		++count; --tempCol; ++tempRow;
 	}
 	if(tempRow < numRows && tempCol >= 0)
+	{
 		if(state[tempCol][tempRow] == -turn)
 			leftBlocked = true;
+	}
 
 	else if(tempRow == numRows || tempCol < 0)
 		leftBlocked = true;
@@ -254,8 +260,10 @@ void AIShell::diagonalRLLoop(int& tempCol, int& tempRow, int col, int row, int& 
 	}
 
 	if(tempRow >= 0 && tempCol < numCols)
+	{
 		if(state[tempCol][tempRow] == -turn)
 			rightBlocked = true;
+	}
 
 	else if(tempRow < 0 || tempCol == numCols)
 		rightBlocked = true;
@@ -313,6 +321,10 @@ int AIShell::countTotalWins(int** state, int turn)
 			{
 				return -WINNER;
 			}
+			if(checkForWin(vertScore))
+			{
+				return WINNER;
+			}
 			aiScore += (vertScore);
 			
 			//Horizontal wins count
@@ -322,11 +334,19 @@ int AIShell::countTotalWins(int** state, int turn)
 			{
 				return -WINNER;
 			}
+			if(checkForWin(horizScore))
+			{
+				return WINNER;
+			}
 			aiScore += horizScore;
 			
 			// Diagonal wins left to right
 			int diagLRScore = std::get<0>(countDiagonalWinsLR(state, col, row));
 			otherScore = std::get<1>(countDiagonalWinsLR(state, col, row));
+			if(checkForWin(diagLRScore))
+			{
+				return WINNER;
+			}
 			if(checkForWin(otherScore))
 			{
 				return -WINNER;
@@ -339,6 +359,10 @@ int AIShell::countTotalWins(int** state, int turn)
 			if(checkForWin(otherScore))
 			{
 				return -WINNER;
+			}
+			if(checkForWin(diagRLScore))
+			{
+				return WINNER;
 			}
 			aiScore += diagRLScore;
 		}	 	
@@ -399,16 +423,16 @@ Move AIShell::makeMove(){
  	Move m;
  	// if(AVILABLEMOVES == -1)
  	// 	initializeGlobalMoves(AVILABLEMOVES);
- 	++moves;
+ 	++MOVESMADE;
  	m = SearchForMove(gameState);
 	return m;
 }
 Move AIShell::SearchForMove(int** state)
 {
-	std::vector<Move> moveVector = availableMoves(state);
-	if(moveVector.size() <=2)
-		return moveVector[0];
-	if(moveVector.size() == numRows * numCols || moveVector.size() == numRows * numCols - 1)
+	// std::vector<Move> moveVector = availableMoves(state);
+	// if(moveVector.size() <=2)
+	// 	return moveVector[0];
+	if(MOVESMADE <= 1)
 	{
 		if(state[numCols/2][numRows/2] == NO_PIECE)
 			return Move(numCols/2, numRows/2);
