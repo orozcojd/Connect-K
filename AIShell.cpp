@@ -185,10 +185,10 @@ void AIShell::diagonalLRLoop(int& tempCol, int& tempRow, int col, int row, int& 
 		//Checks to see if diagonal top right is blocked
 		if(tempRow < numRows && tempCol < numCols)
 		{
-			if(state[tempCol][tempRow] == -turn)
+			if(state[tempCol][tempRow] == -turn && count != k)
 				topDiagBocked = true;
 		}
-		else if(tempRow == numRows || tempCol == numCols)
+		else if(tempRow == numRows || tempCol == numCols && count != k)
 			topDiagBocked = true;
 
 		//Reset column and row to original position before checking the bottom left diagonal
@@ -200,11 +200,11 @@ void AIShell::diagonalLRLoop(int& tempCol, int& tempRow, int col, int row, int& 
 		//Checks to see if diagonal bottom left is blocked
 		if(tempCol >= 0 && tempRow >= 0)
 		{
-			if(state[tempCol][tempRow] == -turn)
+			if(state[tempCol][tempRow] == -turn && count != k)
 				bottomDiagBlocked = true;
 		}
 
-		else if(tempRow < 0 || tempCol < 0)
+		else if(tempRow < 0 || tempCol < 0 && count != k)
 			bottomDiagBlocked = true;
 
 		//If both diagonals are blocking, don't count this score
@@ -247,11 +247,11 @@ void AIShell::diagonalRLLoop(int& tempCol, int& tempRow, int col, int row, int& 
 	}
 	if(tempRow < numRows && tempCol >= 0)
 	{
-		if(state[tempCol][tempRow] == -turn)
+		if(state[tempCol][tempRow] == -turn && count != k)
 			leftBlocked = true;
 	}
 
-	else if(tempRow == numRows || tempCol < 0)
+	else if(tempRow == numRows || tempCol < 0 && count != k)
 		leftBlocked = true;
 
 	tempCol = col; tempRow = row;
@@ -260,13 +260,13 @@ void AIShell::diagonalRLLoop(int& tempCol, int& tempRow, int col, int row, int& 
 		++count; 
 	}
 
-	if(tempRow >= 0 && tempCol < numCols)
+	if(tempRow >= 0 && tempCol < numCols && count != k)
 	{
 		if(state[tempCol][tempRow] == -turn)
 			rightBlocked = true;
 	}
 
-	else if(tempRow < 0 || tempCol == numCols)
+	else if(tempRow < 0 || tempCol == numCols && count != k)
 		rightBlocked = true;
 	if(leftBlocked && rightBlocked)
 		count = 0;
