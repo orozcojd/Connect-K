@@ -65,9 +65,9 @@ void AIShell::VerticalWins(int** state, int col, int row, int turn, int& count, 
 		else if(state[col][row - 1] == -turn)
 			bottomBlocked = true;
 
-		while((row + 1 < numRows) && state[col][row + 1] == turn)
+		while((++row < numRows) && state[col][row] == turn)
 		{ 
-			++row; ++count;	
+			++count;	
 		}
 		if(row >= numRows)
 			topBlocked = true;
@@ -108,9 +108,9 @@ std::tuple<int, int> AIShell::countHorizontalWins(int** state, int col, int row)
 	if(state[col][row] == 1)
 	{
 		aiCount++;
-		while(tempCol - 1 >= 0 && state[tempCol - 1][row] == 1)
+		while(--tempCol >= 0 && state[tempCol][row] == 1)
 		{
-			++aiCount; --tempCol;
+			++aiCount; 
 		}
 		//Checks for blocked pieces
 		if(tempCol < 0)
@@ -119,9 +119,9 @@ std::tuple<int, int> AIShell::countHorizontalWins(int** state, int col, int row)
 			leftBlocked = true;
 
 		tempCol = col; 
-		while(tempCol + 1 < numCols && state[tempCol + 1][row] == 1)
+		while(++tempCol < numCols && state[tempCol][row] == 1)
 		{
-			++aiCount; ++tempCol;
+			++aiCount;
 		}
 
 		if(tempCol == numCols)
@@ -141,9 +141,9 @@ std::tuple<int, int> AIShell::countHorizontalWins(int** state, int col, int row)
 	if(state[col][row] == -1)
 	{
 		otherCount++;
-		while(tempCol - 1 >= 0 && state[tempCol - 1][row] == -1)
+		while(--tempCol >= 0 && state[tempCol][row] == -1)
 		{
-			++otherCount; --tempCol;
+			++otherCount;
 		}
 		//Checks for blocked pieces
 		if(tempCol < 0)
@@ -152,9 +152,9 @@ std::tuple<int, int> AIShell::countHorizontalWins(int** state, int col, int row)
 			otherLBlocked = true;
 
 		tempCol = col; 
-		while(tempCol + 1 < numCols && state[tempCol + 1][row] == -1)
+		while(++tempCol < numCols && state[tempCol][row] == -1)
 		{
-			++otherCount; ++tempCol;
+			++otherCount;
 		}
 
 		if(tempCol == numCols)
@@ -178,9 +178,9 @@ void AIShell::diagonalLRLoop(int& tempCol, int& tempRow, int col, int row, int& 
 	bool topDiagBocked = false; bool bottomDiagBlocked = false;
 
 	if(state[col][row] == turn){
-		while((tempRow + 1 < numRows && tempCol + 1 < numCols) && state[tempCol + 1][tempRow + 1] == turn)
+		while((++tempRow < numRows && ++tempCol < numCols) && state[tempCol][tempRow] == turn)
 		{
-			++count; ++tempRow; ++tempCol;
+			++count; 
 		}
 		//Checks to see if diagonal top right is blocked
 		if(tempRow < numRows && tempCol < numCols)
@@ -193,9 +193,9 @@ void AIShell::diagonalLRLoop(int& tempCol, int& tempRow, int col, int row, int& 
 
 		//Reset column and row to original position before checking the bottom left diagonal
 		tempCol = col; tempRow = row;
-		while((tempRow - 1 >= 0 && tempCol - 1 >= 0) && state[tempCol - 1][tempRow - 1] == turn)
+		while((--tempRow >= 0 && --tempCol >= 0) && state[tempCol][tempRow] == turn)
 		{
-			++count; --tempRow; --tempCol;
+			++count; 
 		}
 		//Checks to see if diagonal bottom left is blocked
 		if(tempCol >= 0 && tempRow >= 0)
@@ -241,9 +241,9 @@ std::tuple<int, int> AIShell::countDiagonalWinsLR(int** state, int col, int row)
 void AIShell::diagonalRLLoop(int& tempCol, int& tempRow, int col, int row, int& count, int** state, int turn)
 {
 	bool leftBlocked = false; bool rightBlocked = false;	
-	while((tempCol - 1 >= 0 && tempRow + 1 < numRows) && state[tempCol - 1][tempRow + 1] == turn)
+	while((--tempCol >= 0 && ++tempRow < numRows) && state[tempCol][tempRow] == turn)
 	{
-		++count; --tempCol; ++tempRow;
+		++count;
 	}
 	if(tempRow < numRows && tempCol >= 0)
 	{
@@ -255,9 +255,9 @@ void AIShell::diagonalRLLoop(int& tempCol, int& tempRow, int col, int row, int& 
 		leftBlocked = true;
 
 	tempCol = col; tempRow = row;
-	while((tempCol + 1 < numCols && tempRow - 1 >= 0) && state[tempCol + 1][tempRow - 1] == turn)
+	while((++tempCol < numCols && --tempRow >= 0) && state[tempCol][tempRow] == turn)
 	{
-		++count; ++tempCol; --tempRow;
+		++count; 
 	}
 
 	if(tempRow >= 0 && tempCol < numCols)
@@ -318,7 +318,7 @@ int AIShell::countTotalWins(int** state, int turn)
 			//Vertical Win count
 			int vertScore = std::get<0>(vertWinCount(state, col, row));
 			int otherScore = std::get<1>(vertWinCount(state,col,row));
-			if(checkForWin(otherScore) && GLOBALDEPTH<=3)
+			if(checkForWin(otherScore))
 			{
 				return -WINNER;
 			}
@@ -331,7 +331,8 @@ int AIShell::countTotalWins(int** state, int turn)
 			//Horizontal wins count
 			int horizScore = std::get<0>(countHorizontalWins(state, col, row));
 			otherScore = std::get<1>(countHorizontalWins(state, col, row));
-			if(checkForWin(otherScore) && GLOBALDEPTH<=3)
+
+			if(checkForWin(otherScore))
 			{
 				return -WINNER;
 			}
@@ -344,20 +345,20 @@ int AIShell::countTotalWins(int** state, int turn)
 			// Diagonal wins left to right
 			int diagLRScore = std::get<0>(countDiagonalWinsLR(state, col, row));
 			otherScore = std::get<1>(countDiagonalWinsLR(state, col, row));
-			if(checkForWin(diagLRScore) && GLOBALDEPTH<=3)
-			{
-				return WINNER;
-			}
 			if(checkForWin(otherScore))
 			{
 				return -WINNER;
+			}
+			if(checkForWin(diagLRScore))
+			{
+				return WINNER;
 			}
 			aiScore += diagLRScore;
 			
 			//Diagonal wins right to left
 			int diagRLScore = std::get<0>(countDiagonalWinsRL(state, col, row));
 			otherScore = std::get<1>(countDiagonalWinsRL(state, col, row));
-			if(checkForWin(otherScore) && GLOBALDEPTH<=3)
+			if(checkForWin(otherScore))
 			{
 				return -WINNER;
 			}
