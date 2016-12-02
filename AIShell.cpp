@@ -205,8 +205,11 @@ void AIShell::diagonalLRLoop(int& tempCol, int& tempRow, int col, int row, int& 
 			bottomDiagBlocked = true;
 
 		//If both diagonals are blocking, don't count this score
-		if(topDiagBocked && bottomDiagBlocked)
-			count = 0;
+		if(count < k)
+		{
+			if(topDiagBocked && bottomDiagBlocked)
+				count = 0;
+		}
 	}
 }
 
@@ -265,8 +268,12 @@ void AIShell::diagonalRLLoop(int& tempCol, int& tempRow, int col, int row, int& 
 
 	else if(tempRow < 0 || tempCol == numCols && count != k)
 		rightBlocked = true;
-	if(leftBlocked && rightBlocked)
-		count = 0;
+
+	if(count < k)
+	{
+		if(leftBlocked && rightBlocked)
+			count = 0;
+	}
 }
 
 //Main function to bottom right to top left diagonal count scanner
@@ -393,8 +400,9 @@ std::vector<Move> AIShell::availableMoves(int** state){
 					moveVector.push_back(m);
 				}
 			}
-		//Push the left of the gameboard into available moves vector
-		for(int col = 0; col < numCols/2 - 1; col++)
+
+		//Push the right side of gameboard into vector
+		for(int col = numCols/2 + numCols/3; col < numCols; col++)
 			for(int row = 0; row < numRows; row++)
 			{
 				if(state[col][row] == NO_PIECE)
@@ -403,8 +411,9 @@ std::vector<Move> AIShell::availableMoves(int** state){
 					moveVector.push_back(m);
 				}
 			}
-		//Push the right side of gameboard into vector
-		for(int col = numCols/2 + numCols/3; col < numCols; col++)
+
+		//Push the left of the gameboard into available moves vector
+		for(int col = numCols/2-2; col > -1; col--)
 			for(int row = 0; row < numRows; row++)
 			{
 				if(state[col][row] == NO_PIECE)
