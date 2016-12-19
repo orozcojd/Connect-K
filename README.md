@@ -1,6 +1,9 @@
 # Discrete-Project
 
-I will update this README when I am finished with this course
+This AI was created in C++ and uses:
+mini-max algorithm with alpha beta pruning
+Iterative deepening search
+Heuristic function
 
 ## To run this project on Windows:
 - `g++ -std=c++11 ConnectK.cpp Move.cpp AIShell.cpp -o myAI`
